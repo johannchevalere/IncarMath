@@ -5,8 +5,17 @@ using UnityEngine.InputSystem;
 using System.Collections;
 using NUnit.Framework.Internal;
 using UnityEngine.Rendering;
+using UnityEngine.EventSystems;
+using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using TMPro;
+using System.Linq;
 public class Repere : MonoBehaviour
 {
+
+    [Header("XR Interaction")]
+    public XRRayInteractor rayInteractor;
+    public InputAction leftTrigger;
+    public InputAction rightTrigger;
     [Header("Grid Settings")]
     public bool is2d = true; //True if the grid is 2 dimensional, False if it is 3 dimensional
     public int width = 5;
@@ -44,10 +53,21 @@ public class Repere : MonoBehaviour
         I.transform.localScale += 0.025f * scale * Vector3.one;
         J.GetComponent<Renderer>().material.color = Color.grey;
         J.transform.localScale += 0.025f * scale * Vector3.one;
+
+        leftTrigger.Enable();
+        rightTrigger.Enable();
     }
 
     void CreateRepere()
     {
+        GameObject plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
+        plane.transform.SetParent(transform);
+
+        plane.transform.localRotation = Quaternion.Euler(-90,0,0);
+        plane.transform.localScale = new Vector3(scale * (1+2*width) / 10, 1, scale * (1+2*height) / 10);
+        plane.transform.localPosition = Vector3.forward * 0.05f;
+        plane.layer = 6;
+        plane.GetComponent<Renderer>().material.color = Color.white;
         for (int line = -width; line <= width; line++)
         {
             GameObject Line = Instantiate(gridLine, transform, false);
@@ -72,6 +92,27 @@ public class Repere : MonoBehaviour
             }
         }
     }
+
+
+    //Destroy all points and vectors on the grid and reset the dictionnaries
+    public void ClearGrid()
+    {
+        foreach (int pointID in points.Keys)
+        {
+            //Si on doit itérer points par points pour faire quelque chose lors de la destruction
+            Destroy(points[pointID]);
+        }
+        foreach (int vectorID in vectors.Keys)
+        {
+            Destroy(vectors[vectorID].gameObject);
+        }
+        points = new Dictionary<int, GameObject>(); //key = button id
+        pointsCoordinate = new Dictionary<int, Vector3>();
+        coordinatePoints = new Dictionary<Vector3, List<int>>();
+        vectors = new Dictionary<int, Vector>();
+        initialPoints = new Dictionary<int, int>(); //Key = VectorID, Value = InitialPointID
+        terminalPoints = new Dictionary<int, int>();//Key = VectorID, Value = TerminalPointID
+    }
     //Create a point on the grid and generate the first available id for the point
     //Only int positioning for now, might reconsider for decimal using precision later
     public GameObject CreatePointByCoordinates(Vector3 pointCoord, int id = -1)
@@ -92,15 +133,15 @@ public class Repere : MonoBehaviour
         coordinatePoints[pointCoord].Add(id);
         return point;
     }
-    private Vector3 CoordToPos(Vector3 coord)
+    public Vector3 CoordToPos(Vector3 coord)
     {
         return (scale * coord) + transform.position;
     }
-    private Vector3 posToCoordinates(Vector3 pos)
+    public Vector3 posToCoordinates(Vector3 pos)
     {
         return (pos - transform.position) / scale;
     }
-    private Vector3 posToRoundCoord(Vector3 pos)
+    public Vector3 posToRoundCoord(Vector3 pos)
     {
         Vector3 coords = posToCoordinates(pos);
         return new Vector3(Mathf.Round(coords.x), Mathf.Round(coords.y), Mathf.Round(coords.z));
@@ -117,34 +158,6 @@ public class Repere : MonoBehaviour
         pointsCoordinate.Remove(id);
         Destroy(point);
     }
-    void Update()
-    {
-        var mouse = Mouse.current;
-
-        if (mouse.leftButton.wasPressedThisFrame)
-        {
-            Vector3 mousePos = Camera.main.ScreenToWorldPoint(new Vector3(mouse.position.ReadValue().x, mouse.position.ReadValue().y, transform.position.z));
-            mousePos.z = transform.position.z;
-            Debug.Log(posToCoordinates(mousePos));
-            Debug.Log(posToRoundCoord(mousePos));
-            if (coordinatePoints.ContainsKey(posToRoundCoord(mousePos)) && coordinatePoints[posToRoundCoord(mousePos)].Count > 0)
-            {
-                selectPoint(coordinatePoints[posToRoundCoord(mousePos)][^1]);
-            }
-        }
-        if (mouse.rightButton.wasPressedThisFrame)
-        {
-            Vector3 mousePos = Camera.main.ScreenToWorldPoint(new Vector3(mouse.position.ReadValue().x, mouse.position.ReadValue().y, transform.position.z));
-            if(coordinatePoints.ContainsKey(posToRoundCoord(mousePos)))
-            {
-                selectPoint(coordinatePoints[posToRoundCoord(mousePos)][^1]);
-                StartCoroutine("movePointToPointer");
-            }
-            mousePos.z = transform.position.z;
-            CreatePoint(mousePos);
-        }
-    }
-
     public void CreatePoint(Vector3 pos)
     {
         CreatePointByCoordinates(posToRoundCoord(pos));
@@ -158,10 +171,20 @@ public class Repere : MonoBehaviour
         }
 
         GameObject v = MathManager.instance.InstantiateVector(pointsCoordinate[id1] + offset, pointsCoordinate[id2] + offset, transform, scale);
+        int id = newVectorId();
+        vectors[id] = v.GetComponent<Vector>();
+        initialPoints[id] = id1;
+        terminalPoints[id] = id2;
         return v.GetComponent<Vector>();
     }
     
-    IEnumerator CreateVectorWithOnePoint()
+    private int newVectorId()
+    {
+        int id = 0;
+        while (vectors.ContainsKey(id)) id++;
+        return id;
+    }
+    /*IEnumerator CreateVectorWithOnePoint()
     {
         int id = selectedPointID;
         Vector v = CreateVectorWithTwoPoints(id, id);
@@ -174,7 +197,7 @@ public class Repere : MonoBehaviour
             nextVectorPos.z = v.transform.localPosition.z;
            
             v.changePointPosition(nextVectorPos);
-            if (Mouse.current.leftButton.isPressed)
+            if (leftTrigger.ReadValue<float>() > 0f)
             {
                 var finalCoords = coordToRoundCoord(pointerCoordinates());
                 v.changePointPosition(finalCoords);
@@ -184,19 +207,9 @@ public class Repere : MonoBehaviour
             }
             yield return null;
         }
-    }
+    } */
     //TODO: Needs works for moving the vectors associated to the point etc...
-    IEnumerator movePointToPointer()
-    {
-        Debug.Log(selectedPointID);
-                for (; ; )
-        {
-            GameObject pointToMove = points[selectedPointID];
-            pointToMove.transform.position = CoordToPos(coordToRoundCoord(pointerCoordinates()));
-            yield return null;
-        }
-    }
-    private void selectPoint(int id) { 
+        private void selectPoint(int id) { 
         if (!isPointSelected) { 
             isPointSelected = true; 
             selectedPointID = id; 
@@ -206,7 +219,7 @@ public class Repere : MonoBehaviour
 
         if (id == selectedPointID)
         {            
-            StartCoroutine(CreateVectorWithOnePoint());
+            //StartCoroutine(CreateVectorWithOnePoint());
             return;
         }
         isPointSelected = false; 
@@ -214,16 +227,77 @@ public class Repere : MonoBehaviour
         points[selectedPointID].gameObject.GetComponent<Renderer>().material.color = Color.white; 
         selectedPointID = -1; 
     }
-
-
-    private Vector3 pointerCoordinates()
+    public bool trySelectPointByPos(Vector3 pos)
     {
-        var mouse = Mouse.current;
-        Vector3 pointerCoordinates = new Vector3(mouse.position.ReadValue().x, mouse.position.ReadValue().y, transform.position.z);
-        pointerCoordinates = Camera.main.ScreenToWorldPoint(pointerCoordinates);
-        return posToCoordinates(pointerCoordinates);
+        Vector3 roundCoord = posToRoundCoord(pos); 
+        if (coordinatePoints.ContainsKey(roundCoord) && (coordinatePoints[roundCoord].Count > 0))
+        {
+            selectPoint(coordinatePoints[roundCoord][^1]);
+            return true;
+        }
+        return false;
     }
-}
+    public bool tryGetPointIdByPos(Vector3 pos, out int id)
+    {
+        Vector3 roundCoord = posToRoundCoord(pos);
+        if (!coordinatePoints.ContainsKey(roundCoord) || coordinatePoints[roundCoord].Count == 0)
+        {
+            id = -1;
+            return false;
+        }
+        else
+        {
+            id = coordinatePoints[roundCoord][^1];
+            return true;
+        }
+    }
+    public void movePointToPos(int pointId, Vector3 pos, bool definitive = true)
+    {
+        //Move point
+        points[pointId].transform.position = pos;
+        //Move vectors associated with point
+        //Reverse search in dict isn't great, but best solution atm
+        foreach (KeyValuePair<int, int> pair in initialPoints)
+        {
+            if (pair.Value == pointId)
+                vectors[pair.Key].changePointPosition((posToRoundCoord(pos)), false);
+        }
+        foreach (KeyValuePair<int, int> pair in terminalPoints)
+        {
+            if (pair.Value == pointId)
+                vectors[pair.Key].changePointPosition((posToRoundCoord(pos)), true);
+        }
+        Vector3 roundCoords = posToRoundCoord(pos);
+        //If move is definitive then modify point coordinates dicts 
+        if (definitive)
+        {
+            Debug.Log("Definitive move of point");
+            Vector3 oldPos = pointsCoordinate[pointId];
+            //In case it was a point stacked with other points
+            if (coordinatePoints.ContainsKey(oldPos) && coordinatePoints[oldPos].Count > 1)
+            {
+                coordinatePoints[oldPos].Remove(pointId);
+            }
+            else 
+            { 
+                coordinatePoints.Remove(oldPos); 
+            }
+            if (coordinatePoints.ContainsKey(roundCoords))
+            {
+                Debug.Log("Point has been moved in top of another point");
+                coordinatePoints[roundCoords].Add(pointId);
+            }
+            else
+            {
+                coordinatePoints[roundCoords] = new List<int>();
+                coordinatePoints[roundCoords].Add(pointId);
+            }//If we land on another point CHANGE HERE IF WE MERGE POINTS ON THE SAME PLACE
+            pointsCoordinate[pointId] = roundCoords;
+        }
+    }
+    public TMP_Text text;
+    //2d Grid for now
+    }
 
 
 
