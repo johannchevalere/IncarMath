@@ -9,6 +9,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using TMPro;
 using System.Linq;
+using UnityEngine.Events;
 public class Repere : MonoBehaviour
 {
 
@@ -39,7 +40,8 @@ public class Repere : MonoBehaviour
     private Dictionary<int, int> initialPoints = new Dictionary<int, int>(); //Key = VectorID, Value = InitialPointID
     private Dictionary<int, int> terminalPoints = new Dictionary<int, int>();//Key = VectorID, Value = TerminalPointID
     private bool vectorCreation = false;
-    
+    [Header("Events")]
+    public UnityEvent GridModification;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -175,6 +177,7 @@ public class Repere : MonoBehaviour
         vectors[id] = v.GetComponent<Vector>();
         initialPoints[id] = id1;
         terminalPoints[id] = id2;
+        GridModification.Invoke();
         return v.GetComponent<Vector>();
     }
     

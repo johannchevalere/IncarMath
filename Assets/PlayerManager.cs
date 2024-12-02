@@ -59,7 +59,6 @@ public class PlayerManager : MonoBehaviour
     {
         InputAction grab = gridActionAsset.FindActionMap("Grid").FindAction("Grab");
         if (grab != null) {
-            Debug.Log("Found It");
             int id = -2;
             grid.tryGetPointIdByPos(pos, out id);
             while (grab.ReadValue<float>() > 0f)
