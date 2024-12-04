@@ -131,7 +131,7 @@ GameObject:
   - component: {fileID: 100970626}
   - component: {fileID: 100970625}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: CurrentInstruction
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -151,10 +151,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1784928895}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 2000, y: 500}
+  m_AnchorMin: {x: 0.5, y: 1}
+  m_AnchorMax: {x: 0.5, y: 1}
+  m_AnchoredPosition: {x: 0, y: -97}
+  m_SizeDelta: {x: 2000, y: 250}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &100970625
 MonoBehaviour:
@@ -176,8 +176,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Charles Soubre, n\xE9 le 4 f\xE9vrier 1821 \xE0 Li\xE8ge o\xF9 il est
-    mort le 29 janvier 1895, est un peintre belge. "
+  m_text: "Ici sera \xE9crite la consigne de l'exercice"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1978,12 +1977,14 @@ MonoBehaviour:
   precision: 1
   scale: 0.1
   gridLine: {fileID: 1142517986}
+  pointBaseColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  pointSelectedColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   GridModification:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 1990448468}
         m_TargetAssemblyTypeName: ScenarioManager, Assembly-CSharp
-        m_MethodName: checkVectorByCoordinates
+        m_MethodName: CheckConditions
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1993,7 +1994,6 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-  text: {fileID: 100970625}
 --- !u!4 &1144985764
 Transform:
   m_ObjectHideFlags: 0
@@ -2129,7 +2129,7 @@ GameObject:
   - component: {fileID: 1241649790}
   - component: {fileID: 1241649789}
   m_Layer: 5
-  m_Name: Content
+  m_Name: ScrollView Content
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2174,38 +2174,11 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Le jeune Charles Soubre commence sa formation artistique d\xE8s 1834 dans
-    l'atelier de Jules Van Marcke, puis la compl\xE8te \xE0 l'Acad\xE9mie des beaux-arts
-    de Li\xE8ge et \xE0 l'Acad\xE9mie royale des beaux-arts de Bruxelles. Pour couvrir
-    les frais de ses \xE9tudes, il donne des le\xE7ons qui occupent la plus grande
-    partie de son temps. En 1853, l'artiste est nomm\xE9 professeur de dessin \xE0
-    l'Acad\xE9mie des beaux-arts de Li\xE8ge. Il commence d\xE8s lors une longue
-    carri\xE8re d'enseignant qui se termine 35 ans plus tard, lorsqu'il d\xE9missionne
-    de ses fonctions et re\xE7oit le titre de professeur honoraire en reconnaissance
-    des services rendus \xE0 l'Acad\xE9mie.\r\n\r\nL'artiste est surtout un peintre
-    de sujets historiques, mais aussi de sc\xE8nes de genre, de portraits, de paysages
-    et de figures f\xE9minines. Comme peintre d'histoire, il \xAB cherche, plus qu'aucun
-    autre de ses confr\xE8res, ses sources d'inspiration dans l'histoire locale,
-    voire dans les l\xE9gendes du terroir \xBB, comme c'est le cas dans plusieurs
-    de ses \u0153uvres principales telles que la Mort d'Henri IV, empereur d'Allemagne
-    (1850), Une famille noble devant le Conseil des troubles (1873), La M\xE5le Saint-Martin
-    (1876) ou Le D\xE9part des volontaires li\xE9geois pour Bruxelles sous la conduite
-    de Charles Rogier (1878). Ses compositions historiques refl\xE9tant la grandeur
-    picturale pris\xE9e \xE0 l'apog\xE9e de sa carri\xE8re connaissent, \xE0 la fin
-    de sa vie, un d\xE9clin li\xE9 aux go\xFBts devenus en vogue. Toutefois, Charles
-    Soubre r\xE9alise \xE9galement des paysages pleinairistes, o\xF9 la recherche
-    d'\xE9quilibre, d'organisation et de synth\xE8se est consid\xE9r\xE9e positivement
-    bien apr\xE8s sa mort.\r\n\r\nTout au long de sa carri\xE8re artistique, le peintre
-    expose r\xE9guli\xE8rement aux Salons triennaux belges et lors de diff\xE9rents
-    grands \xE9v\xE9nements internationaux. En plus de multiples participations aux
-    Salon de Bruxelles (16 fois entre 1839 et 1884), Salon d'Anvers (9 fois entre
-    1840 et 1879) et Salon de Gand (10 fois entre 1844 et 1895), il expose au Salon
-    de peinture et de sculpture \xE0 Paris en 1861 et 1863, aux Expositions internationales
-    de Londres en 1872, 1873 et 1874, \xE0 l'Exposition universelle de Vienne en
-    1873, \xE0 l'Exposition universelle de Philadelphie en 1876 et \xE0 l'Exposition
-    universelle de Sydney de 1879-1880. Cette intense activit\xE9 est r\xE9compens\xE9e
-    par une m\xE9daille d'or au Salon de Bruxelles de 1866 et une m\xE9daille de
-    bronze \xE0 l'Exposition universelle de Sydney de 1879-1880. "
+  m_text: "- <color=\"black\">Exercice actuel </color> \n   <sprite=\"MixedIndexTest\"
+    index=7> Ancien exercice\n   <sprite=\"MixedIndexTest\" index=7> Ancien exercice\n  
+    <sprite=\"MixedIndexTest\" index=7> Ancien exercice\n   <sprite=\"MixedIndexTest\"
+    index=7> Ancien exercice\n   <sprite=\"MixedIndexTest\" index=7> Ancien exercice\n  
+    <sprite=\"MixedIndexTest\" index=7> Ancien exercice"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2214,8 +2187,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4278190080
-  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
+    rgba: 4284900982
+  m_fontColor: {r: 0.46226418, g: 0.39902994, b: 0.39902994, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -2232,8 +2205,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 20
-  m_fontSizeBase: 20
+  m_fontSize: 30
+  m_fontSizeBase: 30
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -2900,6 +2873,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 100970624}
+  - {fileID: 1908270711}
   m_Father: {fileID: 1785079763}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -3199,6 +3173,142 @@ CanvasRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1887182350}
+  m_CullTransparentMesh: 1
+--- !u!1 &1908270710
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1908270711}
+  - component: {fileID: 1908270713}
+  - component: {fileID: 1908270712}
+  m_Layer: 5
+  m_Name: SelectedObjectInfo
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1908270711
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1908270710}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1784928895}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0}
+  m_AnchorMax: {x: 0.5, y: 0}
+  m_AnchoredPosition: {x: 0, y: 120}
+  m_SizeDelta: {x: 2000, y: 50}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1908270712
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1908270710}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_text: Vecteur AB = (0,1)
+  m_isRightToLeft: 0
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontSharedMaterials: []
+  m_fontMaterial: {fileID: 0}
+  m_fontMaterials: []
+  m_fontColor32:
+    serializedVersion: 2
+    rgba: 4278190080
+  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
+  m_enableVertexGradient: 0
+  m_colorMode: 3
+  m_fontColorGradient:
+    topLeft: {r: 1, g: 1, b: 1, a: 1}
+    topRight: {r: 1, g: 1, b: 1, a: 1}
+    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
+    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColorGradientPreset: {fileID: 0}
+  m_spriteAsset: {fileID: 0}
+  m_tintAllSprites: 0
+  m_StyleSheet: {fileID: 0}
+  m_TextStyleHashCode: -1183493901
+  m_overrideHtmlColors: 0
+  m_faceColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontSize: 64
+  m_fontSizeBase: 64
+  m_fontWeight: 400
+  m_enableAutoSizing: 0
+  m_fontSizeMin: 18
+  m_fontSizeMax: 72
+  m_fontStyle: 0
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
+  m_textAlignment: 65535
+  m_characterSpacing: 0
+  m_wordSpacing: 0
+  m_lineSpacing: 0
+  m_lineSpacingMax: 0
+  m_paragraphSpacing: 0
+  m_charWidthMaxAdj: 0
+  m_TextWrappingMode: 1
+  m_wordWrappingRatios: 0.4
+  m_overflowMode: 0
+  m_linkedTextComponent: {fileID: 0}
+  parentLinkedComponent: {fileID: 0}
+  m_enableKerning: 0
+  m_ActiveFontFeatures: 6e72656b
+  m_enableExtraPadding: 0
+  checkPaddingRequired: 0
+  m_isRichText: 1
+  m_EmojiFallbackSupport: 1
+  m_parseCtrlCharacters: 1
+  m_isOrthographic: 1
+  m_isCullingEnabled: 0
+  m_horizontalMapping: 0
+  m_verticalMapping: 0
+  m_uvLineOffset: 0
+  m_geometrySortingOrder: 0
+  m_IsTextObjectScaleStatic: 0
+  m_VertexBufferAutoSizeReduction: 0
+  m_useMaxVisibleDescender: 1
+  m_pageToDisplay: 1
+  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_isUsingLegacyAnimationComponent: 0
+  m_isVolumetricText: 0
+  m_hasFontAssetChanged: 0
+  m_baseMaterial: {fileID: 0}
+  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!222 &1908270713
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1908270710}
   m_CullTransparentMesh: 1
 --- !u!1 &1990448467
 GameObject:

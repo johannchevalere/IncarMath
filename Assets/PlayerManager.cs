@@ -16,6 +16,7 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] TMP_Text text;
 
     Vector3 pointerPositionOnGrid;
+    int currentPointID;
 
 
     private void Update()
@@ -34,16 +35,24 @@ public class PlayerManager : MonoBehaviour
         if (rayInteractor.TryGetCurrent3DRaycastHit(out hit))
         {
             Debug.Log("Hit");
-            if (grid.trySelectPointByPos(hit.point)) return; //if a point exists at current coordinates, we select it and end method
-            grid.CreatePoint(hit.point); //else we create a point
+            if (grid.trySelectPointByPos(hit.point, out int id))
+            {
+                currentPointID = id;
+                //Todo afficher les informations du point
+                return;
+            }//if a point exists at current coordinates, we select it and end method
+            currentPointID = grid.CreatePoint(hit.point); //else we create a point. Storing point id in case new vector is created
         }
     }
     private void OnHoldSelect()
     {
-        //Create Vector (need to use a coroutine)
+        //Create Vector by holding trigger
         RaycastHit hit;
         if (rayInteractor.TryGetCurrent3DRaycastHit(out hit))
-        text.text = "Pointer at " + grid.posToCoordinates(hit.point).ToString();
+        {
+            text.text = "Pointer at " + grid.posToCoordinates(hit.point).ToString();
+            StartCoroutine(createVectorHold());
+        }
         Debug.Log("Hold");
     }
     private void OnGrab()
@@ -68,6 +77,28 @@ public class PlayerManager : MonoBehaviour
             }
             //Definitive move to change dictionnaries
             grid.movePointToPos(id, grid.CoordToPos(grid.posToRoundCoord(pointerPositionOnGrid)), true);
+        }
+    }
+    IEnumerator createVectorHold()
+    {
+        InputAction hold = gridActionAsset.FindActionMap("Grid").FindAction("Hold Select");
+         
+        int terminalPointID = grid.CreatePoint(pointerPositionOnGrid);
+        Vector v = grid.CreateVectorWithTwoPoints(currentPointID, terminalPointID);
+        
+        
+        
+        if (hold != null)
+        {
+            print("Find Select");
+            while(hold.ReadValue<float>() > 0f)
+            {
+                //CHANGER LA VALEUR DE POINTERPOSITIONON GRID DANS CETTE FONCTION POUR CHANGER LES CONDITIONS DE CONGRUENCES
+                grid.movePointToPos(terminalPointID, grid.CoordToPos(grid.posToRoundCoord(pointerPositionOnGrid)), false);
+                yield return new WaitForSeconds(0.1f);
+            }
+
+            grid.movePointToPos(terminalPointID,grid.CoordToPos(grid.posToRoundCoord(pointerPositionOnGrid)), true);
         }
     }
 }
