@@ -29,8 +29,8 @@ public class MathManager : MonoBehaviour
         Vector v = newVector.GetComponent<Vector>();
         if (v == null) v = newVector.AddComponent<Vector>();
         v.transform.localScale *= scale;
-        v.changePointPosition(initialPosition, false);
-        v.changePointPosition(terminalPosition, true);
+        v.ChangePointPosition(initialPosition, false);
+        v.ChangePointPosition(terminalPosition, true);
         v.IsMoving = isMoving;
         return newVector;
     }

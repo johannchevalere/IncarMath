@@ -17,7 +17,7 @@ public class ScenarioManager : MonoBehaviour
         VectorExistence,
         PointExistence
     }
-    private List<Instruction> instructions = new List<Instruction>();
+    private List<Instruction> instructions = new();
     struct Instruction
     {
         Condition condition;
@@ -72,7 +72,8 @@ public class ScenarioManager : MonoBehaviour
             this.coords1 = coords1;
             this.coords2 = coords2;
             this.grid = grid;
-        }
+
+    }
         //Todo: ToString
         public bool IsCompleted()
         {
@@ -82,7 +83,7 @@ public class ScenarioManager : MonoBehaviour
                     
                     return false;
                 case Condition.PointAtCoordinates:
-                    //TODO Implement
+                    //TODO Implement verification functions for conditions
                     return false;
                 case Condition.VectorMagnitude:
                     return false;
@@ -91,11 +92,11 @@ public class ScenarioManager : MonoBehaviour
                 case Condition.VectorExistence:
                     Assert.IsNotNull(value);
 
-                    return grid.isThereNVectors((int) value);
+                    return grid.IsThereNVectors((int) value);
 
                 case Condition.PointExistence:
                     Assert.IsNotNull(value);
-                    return grid.isThereNPoints((int) value);
+                    return grid.IsThereNPoints((int) value);
                 default:
                     Debug.LogWarning("Condition not supported");
                     return false;
@@ -109,12 +110,8 @@ public class ScenarioManager : MonoBehaviour
         if (instance != null && instance != this) Destroy(this.gameObject);
         instance = this;
 
-        Instruction ins = new Instruction(Condition.VectorExistence, exerciseGrid);
-    }
-    // Update is called once per frame
-    void Update()
-    {
-        
+        Instruction ins = new (Condition.VectorExistence, exerciseGrid, value: 5);
+        instructions.Add(ins);
     }
     public void CheckConditions()
     {
@@ -124,8 +121,7 @@ public class ScenarioManager : MonoBehaviour
             b &= instruction.IsCompleted();
         }
         if (b) {
-            Debug.Log("Exercises are done !!");
-            //Finish the exercise/go to the next one
+            //Todo: Finish the exercise and go to the next one
         }
     }
 }

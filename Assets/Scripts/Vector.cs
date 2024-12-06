@@ -6,12 +6,8 @@ public class Vector : MonoBehaviour
     public Vector3 initialPoint = Vector3.zero;
     public Vector3 terminalPoint = Vector3.up;
     public bool IsMoving { get; set; }// Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-    }
-
     //Modify the size of the Vector
-    public void changePointPosition(Vector3 newPosition, bool terminalPointMoving = true)
+    public void ChangePointPosition(Vector3 newPosition, bool terminalPointMoving = true)
     {
         Transform shaft = transform.Find("Shaft");
         Transform arrow = transform.Find("Arrow");
@@ -22,19 +18,19 @@ public class Vector : MonoBehaviour
         Vector3 heading = terminalPoint - initialPoint;
         if (shaft != null)
         {
-            shaft.localScale = new Vector3(shaft.localScale.x,0.5f * heading.magnitude, shaft.localScale.z);
+            shaft.localScale = new Vector3(shaft.localScale.x, 0.5f * heading.magnitude, shaft.localScale.z);
         }
         if (arrow != null)
         {
-            arrow.localPosition += Vector3.up * 0.5f * (heading.magnitude - oldMagnitude);
+            arrow.localPosition += 0.5f * (heading.magnitude - oldMagnitude) * Vector3.up;
         }
         transform.localPosition = transform.localScale.y * (initialPoint + heading / 2);
 
-        if (heading.magnitude > 0) transform.up = heading/heading.magnitude;
-            
+        if (heading.magnitude > 0) transform.up = heading / heading.magnitude;
+
     }
     // Update is called once per frame
-    private float magnitude()
+    private float Magnitude()
     {
         return Vector3.Distance(initialPoint, terminalPoint);
     }
@@ -42,7 +38,7 @@ public class Vector : MonoBehaviour
     {
         {
             //if the vector is very small
-            if (magnitude() < 0.1 * transform.localScale.x)
+            if (Magnitude() < 0.1 * transform.localScale.x)
             {
                 //Make the arrow disappear if vector is too small
                 if (transform.Find("Arrow").GetComponent<Renderer>().enabled) transform.Find("Arrow").GetComponent<Renderer>().enabled = false;
@@ -57,5 +53,11 @@ public class Vector : MonoBehaviour
                 if (!transform.Find("Arrow").GetComponent<Renderer>().enabled) transform.Find("Arrow").GetComponent<Renderer>().enabled = true;
             }
         }
-        }
     }
+    public void ChangeColor(Color color)
+    {
+        foreach (Transform children in transform)
+            children.gameObject.GetComponent<Renderer>().material.color = color;
+    }
+}
+

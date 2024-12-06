@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class Point : MonoBehaviour
@@ -14,5 +15,16 @@ public class Point : MonoBehaviour
         
     }
 
+    public void changeColor(Color color)
+    {
+        GetComponent<Renderer>().material.color = color;
+    }
 
+    IEnumerator changeColorTemporary(Color color, float seconds)
+    {
+        Color currentColor = GetComponent<Renderer>().material.color;
+        GetComponent<Renderer>().material.color = color;
+        yield return new WaitForSeconds(seconds);
+        GetComponent<Renderer>().material.color = currentColor;
+    }
 }
