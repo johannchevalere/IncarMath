@@ -3,11 +3,14 @@ using UnityEngine;
 
 using System.Collections.Generic;
 using System.Globalization;
+using TMPro;
 public class ScenarioManager : MonoBehaviour
 {
     enum State { Exercise, Explanation}
     public static ScenarioManager instance;
     public Repere exerciseGrid;
+    public TMP_Text selectedText;
+    public TMP_Text instructionText;
     enum Condition
     {
         VectorAtCoordinates,
@@ -23,15 +26,17 @@ public class ScenarioManager : MonoBehaviour
         Condition condition;
         Vector3? coords1;
         Vector3? coords2;
-        int? value;
+        float? value;
+        int count;
         Repere grid;
 
         //Instruction is created with lots of differents parameters.
         //Condition is the rule to pass the exercice
         //coords1 is used as the value of a needed coordinate in the instruction (eg: the position of a point)
         //coords2 is used as the value of a 2nd needed coordinate in the instruction (eg: the position of the terminal point of a vector)
-        //value is used when an int argument is needed (might need to change that to float) (eg: the number of points to validate the condition)
-        public Instruction(Condition condition, Repere grid, Vector3? coords1 = null, Vector3? coords2 = null, int? value = null )
+        //value is used when an int argument is needed (might need to change that to float)
+        //count is the number of object that needs to have the condition to validate it.
+        public Instruction(Condition condition, Repere grid, Vector3? coords1 = null, Vector3? coords2 = null, float? value = null, int count = 1 )
         {
             switch (condition)
             {
@@ -58,12 +63,12 @@ public class ScenarioManager : MonoBehaviour
                 case Condition.VectorExistence:
                     Assert.IsNull (coords1);
                     Assert.IsNull(coords2);
-                    Assert.IsNotNull (value);
+                    Assert.IsNull (value);
                     break;
                 case Condition.PointExistence:
                     Assert.IsNull (coords1);
                     Assert.IsNull(coords2);
-                    Assert.IsNotNull(value);
+                    Assert.IsNull(value);
                     break;
             }
 
@@ -72,7 +77,7 @@ public class ScenarioManager : MonoBehaviour
             this.coords1 = coords1;
             this.coords2 = coords2;
             this.grid = grid;
-
+            this.count = count;
     }
         //Todo: ToString
         public bool IsCompleted()
@@ -86,17 +91,19 @@ public class ScenarioManager : MonoBehaviour
                     //TODO Implement verification functions for conditions
                     return false;
                 case Condition.VectorMagnitude:
-                    return false;
-                case Condition.VectorDirection:
-                    return false;
-                case Condition.VectorExistence:
                     Assert.IsNotNull(value);
+                    return grid.NbVectorMagnitude((float) value) >= count;
+                case Condition.VectorDirection:
+                    Assert.IsNotNull(coords1);
+                    return grid.NbVectorDirection((Vector3) coords1) >= count;
+                case Condition.VectorExistence:
+                    Assert.IsNull(value);
 
-                    return grid.IsThereNVectors((int) value);
+                    return grid.NbVectors() >= count;
 
                 case Condition.PointExistence:
                     Assert.IsNotNull(value);
-                    return grid.IsThereNPoints((int) value);
+                    return grid.NbPoints() >= count;
                 default:
                     Debug.LogWarning("Condition not supported");
                     return false;
@@ -110,8 +117,12 @@ public class ScenarioManager : MonoBehaviour
         if (instance != null && instance != this) Destroy(this.gameObject);
         instance = this;
 
-        Instruction ins = new (Condition.VectorExistence, exerciseGrid, value: 5);
+        Instruction ins = new (Condition.VectorExistence, exerciseGrid, count: 5);
         instructions.Add(ins);
+    }
+    private void Update()
+    {
+        selectedText.text = exerciseGrid.SelectedToString();
     }
     public void CheckConditions()
     {
@@ -120,7 +131,9 @@ public class ScenarioManager : MonoBehaviour
         {
             b &= instruction.IsCompleted();
         }
-        if (b) {
+        if (b) 
+        {
+            selectedText.text = "Exercice réussi";            
             //Todo: Finish the exercise and go to the next one
         }
     }

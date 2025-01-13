@@ -59,5 +59,9 @@ public class Vector : MonoBehaviour
         foreach (Transform children in transform)
             children.gameObject.GetComponent<Renderer>().material.color = color;
     }
+    public void DisplayArrow(bool enable)
+    {
+        transform.Find("Arrow").GetComponent<Renderer>().enabled = enable;
+    }
 }
 

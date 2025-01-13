@@ -23,17 +23,33 @@ public class PlayerManager : MonoBehaviour
 
     private void Update()
     {
-        
+        text.text = grid.NbPoints().ToString();
         if (rayInteractor.TryGetCurrent3DRaycastHit(out RaycastHit hit))
         {
+            
             pointerPositionOnGrid = hit.point;
             pointer.position = grid.CoordToPos(grid.PosToRoundCoord(hit.point));
+            if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Vector"))
+            {
+                pointerPositionOnGrid.z = grid.transform.position.z;
+            }
         }   
+
+        if (!grid.SelectedToString().Equals(""))
+        {
+            text.text = grid.SelectedToString();
+        }
     }
     private void OnSelect()
     {
         if (rayInteractor.TryGetCurrent3DRaycastHit(out RaycastHit hit))
         {
+            if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Vector"))
+            {
+                grid.SelectVector(grid.GetVectorId(hit.collider.transform.parent.GetComponent<Vector>()));
+                return;
+            }
+
             if (grid.TrySelectPointByPos(hit.point, out int id))
             {
                 currentPointID = id;
@@ -58,6 +74,7 @@ public class PlayerManager : MonoBehaviour
         {
             if (grid.TryGetPointIdByPos(hit.point, out int id))
             {
+                Debug.Log("Moving point with grab");
                 StartCoroutine(MovePoint(hit.point));
                 return;
             }
@@ -86,12 +103,15 @@ public class PlayerManager : MonoBehaviour
     {
         InputAction hold = gridActionAsset.FindActionMap("Grid").FindAction("Hold Select");
          
-        int terminalPointID = grid.CreatePoint(pointerPositionOnGrid);
+        //There is the issue... terminal point is created on top of initial point and new merge makes it go boom (doesn't even crash
+        //Todo Fix this sh... i have no idea how to elegantly solve this. Might need a temporary point
+        int terminalPointID = grid.CreateTempPoint(pointerPositionOnGrid);
         grid.CreateVectorWithTwoPoints(currentPointID, terminalPointID);
         if (hold != null)
         {
             while(hold.ReadValue<float>() > 0f)
             {
+                Debug.Log("Create vector hold");
                 Vector3 nextPointPosition = pointerPositionOnGrid;
                 //CHANGER LA VALEUR DE POINTERPOSITIONON GRID DANS CETTE FONCTION POUR CHANGER LES CONDITIONS DE CONGRUENCES
                 if (lowCongruence)
@@ -108,6 +128,7 @@ public class PlayerManager : MonoBehaviour
     }
     IEnumerator MoveVector(Vector vector)
     {
+        //Todo: Vector can be placed out of grid then crash
         //TODO: use specific colors designed in grid (Or in vector ?? Maybe do a mathObject ?) for vector when displaced/selected
         InputAction grab = gridActionAsset.FindActionMap("Grid").FindAction("Grab");
         Vector3 initialPointerPos = pointerPositionOnGrid;
@@ -145,11 +166,22 @@ public class PlayerManager : MonoBehaviour
             //Definitive move and changing dictionnaries
             vector.ChangePointPosition(vector.initialPoint + 0.3f * grid.transform.forward, false);
             vector.ChangePointPosition(vector.terminalPoint + 0.3f * grid.transform.forward, true);
+            //Deleting old points that aren't linked to any vectors
+            //Keeping that here for now but will remove it when i'm sure the other version works with 0 problems
+            /*
+            if (!grid.IsPointLinkedToVectors(oldTerminalPointID)) grid.DeletePoint(oldTerminalPointID);
+            if (!grid.IsPointLinkedToVectors(oldInitialPointID)) grid.DeletePoint(oldInitialPointID);
+
             int initialPointID = grid.CreatePointByCoordinates(vector.initialPoint);
             int terminalPointID = grid.CreatePointByCoordinates(vector.terminalPoint);
             int vectorID = grid.GetVectorId(vector);
             grid.ChangeVectorInitialPoint(vectorID, initialPointID);
             grid.ChangeVectorTerminalPoint(vectorID, terminalPointID);
+            */
+            int vectorID = grid.GetVectorId(vector);
+
+            grid.VectorMoveWithPointDeletion(vectorID, vector.initialPoint, vector.terminalPoint);
+
         }
     }
 }
