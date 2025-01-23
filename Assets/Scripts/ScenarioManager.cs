@@ -9,8 +9,9 @@ public class ScenarioManager : MonoBehaviour
     enum State { Exercise, Explanation}
     public static ScenarioManager instance;
     public Repere exerciseGrid;
-    public TMP_Text selectedText;
     public TMP_Text instructionText;
+    public GameObject popUpUI;
+    public GameObject playerManager;
     enum Condition
     {
         VectorAtCoordinates,
@@ -20,7 +21,8 @@ public class ScenarioManager : MonoBehaviour
         VectorExistence,
         PointExistence
     }
-    private List<Instruction> instructions = new();
+    private List<List<Instruction>> instructions = new();
+    private int instructionIndex = 0;
     struct Instruction
     {
         Condition condition;
@@ -29,6 +31,7 @@ public class ScenarioManager : MonoBehaviour
         float? value;
         int count;
         Repere grid;
+        public readonly string instructionText;
 
         //Instruction is created with lots of differents parameters.
         //Condition is the rule to pass the exercice
@@ -36,7 +39,7 @@ public class ScenarioManager : MonoBehaviour
         //coords2 is used as the value of a 2nd needed coordinate in the instruction (eg: the position of the terminal point of a vector)
         //value is used when an int argument is needed (might need to change that to float)
         //count is the number of object that needs to have the condition to validate it.
-        public Instruction(Condition condition, Repere grid, Vector3? coords1 = null, Vector3? coords2 = null, float? value = null, int count = 1 )
+        public Instruction(Condition condition, Repere grid, string instructionText, Vector3? coords1 = null, Vector3? coords2 = null, float? value = null, int count = 1 )
         {
             switch (condition)
             {
@@ -78,6 +81,7 @@ public class ScenarioManager : MonoBehaviour
             this.coords2 = coords2;
             this.grid = grid;
             this.count = count;
+            this.instructionText = instructionText;
     }
         //Todo: ToString
         public bool IsCompleted()
@@ -85,11 +89,10 @@ public class ScenarioManager : MonoBehaviour
             switch (condition)
             {
                 case Condition.VectorAtCoordinates:
-                    
-                    return false;
+                    return grid.vectorAtCoordinates((Vector3)coords1, (Vector3)coords2);
                 case Condition.PointAtCoordinates:
                     //TODO Implement verification functions for conditions
-                    return false;
+                    return grid.pointAtCoordinates((Vector3) coords1);
                 case Condition.VectorMagnitude:
                     Assert.IsNotNull(value);
                     return grid.NbVectorMagnitude((float) value) >= count;
@@ -117,24 +120,52 @@ public class ScenarioManager : MonoBehaviour
         if (instance != null && instance != this) Destroy(this.gameObject);
         instance = this;
 
-        Instruction ins = new (Condition.VectorExistence, exerciseGrid, count: 5);
-        instructions.Add(ins);
-    }
-    private void Update()
-    {
-        selectedText.text = exerciseGrid.SelectedToString();
+        Instruction ins1 = new (Condition.VectorExistence, exerciseGrid,"Créer 5 vecteurs", count: 5);
+        Instruction ins2 = new (Condition.VectorMagnitude, exerciseGrid,"Créer un vecteur de norme 5", value: 5);
+        Instruction ins3 = new(Condition.VectorAtCoordinates, exerciseGrid, "Créer le vecteur ayant pour origine le point (0;0) de coordonnées (0;1)",coords1: Vector3.zero, coords2: Vector3.up);
+        instructions.Add(new List<Instruction> { ins1});
+        instructions.Add(new List<Instruction> { ins2});
+        instructions.Add(new List<Instruction> { ins3});
     }
     public void CheckConditions()
     {
         bool b = true;
-        foreach (Instruction instruction in instructions)
+        foreach (Instruction instruction in instructions[instructionIndex])
         {
             b &= instruction.IsCompleted();
         }
         if (b) 
         {
-            selectedText.text = "Exercice réussi";            
-            //Todo: Finish the exercise and go to the next one
+            instructionIndex++;
+
+            //Fin de séquence
+            if (instructionIndex >= instructions.Count)
+            {
+                
+                popUp("Séquence finie !");
+                //Return to menu
+                instructionIndex--;
+            }
+            else
+            {
+
+                popUp(instructions[instructionIndex][0].instructionText);
+            }
+        }
+        else
+        {
+            popUp("Ce n'est pas la bonne réponse !");
         }
     }
+    public void popUp(string text)
+    {
+        playerManager.SetActive(false);
+        popUpUI.SetActive(true);
+        Transform child = popUpUI.transform.Find("Panel/PopUpText");
+        if (child != null && child.TryGetComponent<TMP_Text>(out var t))
+        {
+            t.text = text;
+        }
+    }
+
 }

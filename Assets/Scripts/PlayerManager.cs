@@ -23,7 +23,7 @@ public class PlayerManager : MonoBehaviour
 
     private void Update()
     {
-        text.text = grid.NbPoints().ToString();
+        //text.text = grid.NbPoints().ToString();
         if (rayInteractor.TryGetCurrent3DRaycastHit(out RaycastHit hit))
         {
             
@@ -102,16 +102,15 @@ public class PlayerManager : MonoBehaviour
     IEnumerator CreateVectorHold()
     {
         InputAction hold = gridActionAsset.FindActionMap("Grid").FindAction("Hold Select");
-         
-        //There is the issue... terminal point is created on top of initial point and new merge makes it go boom (doesn't even crash
-        //Todo Fix this sh... i have no idea how to elegantly solve this. Might need a temporary point
         int terminalPointID = grid.CreateTempPoint(pointerPositionOnGrid);
-        grid.CreateVectorWithTwoPoints(currentPointID, terminalPointID);
+        Vector v = grid.CreateVectorWithTwoPoints(currentPointID, terminalPointID);
+
         if (hold != null)
         {
             while(hold.ReadValue<float>() > 0f)
             {
                 Debug.Log("Create vector hold");
+
                 Vector3 nextPointPosition = pointerPositionOnGrid;
                 //CHANGER LA VALEUR DE POINTERPOSITIONON GRID DANS CETTE FONCTION POUR CHANGER LES CONDITIONS DE CONGRUENCES
                 if (lowCongruence)
@@ -122,6 +121,8 @@ public class PlayerManager : MonoBehaviour
                 grid.MovePointToPos(terminalPointID, grid.CoordToPos(grid.PosToRoundCoord(nextPointPosition)), false);
                 yield return new WaitForSeconds(0.1f);
             }
+            //TRES TRES MOCHE, Y a un bug qui fait que quand on créé un point et qu'on reste appuyé pour faire un vecteur, le point n'est pas bien enregistré... Sparadrap en attendant d'avoir quelque chose de mieux.
+            grid.MovePointToPos(currentPointID, grid.CoordToPos(v.initialPoint), true);
 
             grid.MovePointToPos(terminalPointID,grid.CoordToPos(grid.PosToRoundCoord(pointerPositionOnGrid)), true);
         }
@@ -136,14 +137,16 @@ public class PlayerManager : MonoBehaviour
         
         Vector3 initialPointOldPos = grid.CoordToPos(vector.initialPoint);
         Vector3 terminalPointOldPos =grid.CoordToPos(vector.terminalPoint);
-        if (!grid.TryGetPointIdByPos(grid.CoordToPos(grid.PosToRoundCoord(initialPointOldPos)), out int oldInitialPointID)) {
+
+        
+        /*if (!grid.TryGetPointIdByPos(grid.CoordToPos(grid.PosToRoundCoord(initialPointOldPos)), out int oldInitialPointID)) {
             Debug.LogWarning("No initialPoint associated with vector on grid");
             yield break;
         }
-        if (!grid.TryGetPointIdByPos(grid.CoordToPos(grid.PosToRoundCoord(initialPointOldPos)), out int oldTerminalPointID)) {
+        if (!grid.TryGetPointIdByPos(grid.CoordToPos(grid.PosToRoundCoord(terminalPointOldPos)), out int oldTerminalPointID)) {
             Debug.LogWarning("No terminalPoint associated with vector on grid");
             yield break;
-        }
+        }*/
 
 
         if (grab != null) {          

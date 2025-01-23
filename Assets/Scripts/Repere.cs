@@ -31,7 +31,7 @@ public class Repere : MonoBehaviour
 
     [Header("Points")]
     private Dictionary<int, GameObject> points = new (); //key = button id
-    private Dictionary<int, Vector3> pointsCoordinate = new ();
+    public Dictionary<int, Vector3> pointsCoordinate = new ();
     private Dictionary<Vector3, int> coordinatePoints = new ();
     private bool isPointSelected = false;
     private int selectedPointID = -1;
@@ -116,6 +116,7 @@ public class Repere : MonoBehaviour
         vectors = new Dictionary<int, Vector>();
         initialPoints = new Dictionary<int, int>(); //Key = VectorID, Value = InitialPointID
         terminalPoints = new Dictionary<int, int>();//Key = VectorID, Value = TerminalPointID
+        DeselectAllObjects();
         GridModification.Invoke();
     }
     //Create a point on the grid and generate the first available id for the point
@@ -267,7 +268,9 @@ public class Repere : MonoBehaviour
         while (vectors.ContainsKey(id)) id++;
         return id;
     }
-    private string PointIDToString(int id)
+
+    //Might private this
+    public string PointIDToString(int id)
     {
         char c =  (char)(id);
         c += 'A';
@@ -505,13 +508,30 @@ public class Repere : MonoBehaviour
             int initialPointID = initialPoints[vectorID];
             int terminalPointID = terminalPoints[vectorID];
             float vMagnitude = Vector3.Magnitude(pointsCoordinate[terminalPointID] - pointsCoordinate[initialPointID]);
-            if (vMagnitude - magnitude <= Vector3.kEpsilon)
+            if (Mathf.Abs(vMagnitude - magnitude) <= Vector3.kEpsilon)
             {
+                
                 nb++;
             }  
         }
         return nb;
 
     }
+    public bool pointAtCoordinates(Vector3 coords)
+    {
+        return coordinatePoints.ContainsKey(coords);
+    }
+    public bool vectorAtCoordinates(Vector3 initialPointCoords, Vector3 terminalPointCoords)
+    {
+        foreach (int vectorID in vectors.Keys)
+        {
+            if (pointsCoordinate[initialPoints[vectorID]] == initialPointCoords && pointsCoordinate[terminalPoints[vectorID]] == terminalPointCoords)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }
 
