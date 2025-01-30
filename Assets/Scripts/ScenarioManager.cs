@@ -12,6 +12,7 @@ public class ScenarioManager : MonoBehaviour
     public TMP_Text instructionText;
     public GameObject popUpUI;
     public GameObject playerManager;
+    public TMP_Text gridContentText;
     enum Condition
     {
         VectorAtCoordinates,
@@ -127,6 +128,10 @@ public class ScenarioManager : MonoBehaviour
         instructions.Add(new List<Instruction> { ins2});
         instructions.Add(new List<Instruction> { ins3});
     }
+    private void Update()
+    {
+        DisplayGridContent();
+    }
     public void CheckConditions()
     {
         bool b = true;
@@ -167,5 +172,8 @@ public class ScenarioManager : MonoBehaviour
             t.text = text;
         }
     }
-
+    private void DisplayGridContent()
+    {
+        gridContentText.text = exerciseGrid.GridContentToString();
+    }
 }

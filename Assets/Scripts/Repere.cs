@@ -61,6 +61,9 @@ public class Repere : MonoBehaviour
         J.GetComponent<Renderer>().material.color = Color.grey;
         J.transform.localScale += 0.025f * scale * Vector3.one;
 
+        CreateVectorWithTwoPoints(14, 8);
+        CreateVectorWithTwoPoints(9, 8);
+        SelectPoint(14);
         leftTrigger.Enable();
         rightTrigger.Enable();
     }
@@ -430,6 +433,9 @@ public class Repere : MonoBehaviour
                 vectors[pair.Key].ChangePointPosition((PosToRoundCoord(pos)), true);
         }
         Vector3 roundCoords = PosToRoundCoord(pos);
+        //Todo: would love to add this, but there is a huge problem when using this. It fixes everything for the selection issue but the logic is destroyed
+        pointsCoordinate[pointId] = roundCoords;
+
         //If move is definitive then modify point coordinates dicts 
         if (definitive)
         {
@@ -533,5 +539,36 @@ public class Repere : MonoBehaviour
         return false;
     }
 
+    public string GridContentToString()
+    {
+        string s = "Points :\n";
+        foreach (int pointID in points.Keys )
+        {
+
+            if (isPointSelected && selectedPointID == pointID)
+            {
+                s += "<color=#" + ColorUtility.ToHtmlStringRGB(pointSelectedColor) + ">";
+            }
+            s +="\t" + PointIDToString(pointID) + " : " + PointToString(pointID) + "\n";
+            s += "</color>";
+        }
+        s += "\nVecteurs : \n";
+        foreach (int vectorID in vectors.Keys )
+        {
+            if (isVectorSelected && selectedVectorID == vectorID)
+            {
+                s += "<color=#" + ColorUtility.ToHtmlStringRGB(pointSelectedColor) + ">";
+            }
+            s += "\t" + VectorName(vectorID) + " : " + VectorToString(vectorID) + "\n";
+            s += "</color>";
+        }
+        return s;
+    }
+
+    public string VectorName(int vectorID)
+    {
+        //Todo: use vector arrow with character sprite on TMPro after making each and every sprite
+        return PointIDToString(initialPoints[vectorID]) + PointIDToString(terminalPoints[vectorID]);
+    }
 }
 

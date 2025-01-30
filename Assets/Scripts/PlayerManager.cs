@@ -64,7 +64,6 @@ public class PlayerManager : MonoBehaviour
         //Create Vector by holding trigger
         if (rayInteractor.TryGetCurrent3DRaycastHit(out RaycastHit hit))
         {
-            text.text = "Pointer at " + grid.PosToCoord(hit.point).ToString();
             StartCoroutine(CreateVectorHold());
         }
     }
@@ -104,7 +103,7 @@ public class PlayerManager : MonoBehaviour
         InputAction hold = gridActionAsset.FindActionMap("Grid").FindAction("Hold Select");
         int terminalPointID = grid.CreateTempPoint(pointerPositionOnGrid);
         Vector v = grid.CreateVectorWithTwoPoints(currentPointID, terminalPointID);
-
+        grid.SelectVector(grid.GetVectorId(v));
         if (hold != null)
         {
             while(hold.ReadValue<float>() > 0f)
@@ -134,27 +133,17 @@ public class PlayerManager : MonoBehaviour
         InputAction grab = gridActionAsset.FindActionMap("Grid").FindAction("Grab");
         Vector3 initialPointerPos = pointerPositionOnGrid;
         vector.transform.Find("Shaft").GetComponent<CapsuleCollider>().enabled = false;
-        
+
+        int vectorID = grid.GetVectorId(vector);
+        grid.SelectVector(vectorID);
         Vector3 initialPointOldPos = grid.CoordToPos(vector.initialPoint);
         Vector3 terminalPointOldPos =grid.CoordToPos(vector.terminalPoint);
-
-        
-        /*if (!grid.TryGetPointIdByPos(grid.CoordToPos(grid.PosToRoundCoord(initialPointOldPos)), out int oldInitialPointID)) {
-            Debug.LogWarning("No initialPoint associated with vector on grid");
-            yield break;
-        }
-        if (!grid.TryGetPointIdByPos(grid.CoordToPos(grid.PosToRoundCoord(terminalPointOldPos)), out int oldTerminalPointID)) {
-            Debug.LogWarning("No terminalPoint associated with vector on grid");
-            yield break;
-        }*/
-
 
         if (grab != null) {          
             vector.ChangeColor(Color.green);
             while (grab.ReadValue<float>() > 0f)
             {
                 Vector3 deltaPos = pointerPositionOnGrid - initialPointerPos;
-                text.text = deltaPos.ToString();
                 Vector3 newInitialPointPos = grid.PosToRoundCoord(initialPointOldPos + deltaPos) - 0.3f * Vector3.forward;
                 Vector3 newTerminalPointPos = grid.PosToRoundCoord(terminalPointOldPos + deltaPos) - 0.3f * Vector3.forward;
                 vector.ChangePointPosition(newInitialPointPos, false);
@@ -181,7 +170,6 @@ public class PlayerManager : MonoBehaviour
             grid.ChangeVectorInitialPoint(vectorID, initialPointID);
             grid.ChangeVectorTerminalPoint(vectorID, terminalPointID);
             */
-            int vectorID = grid.GetVectorId(vector);
 
             grid.VectorMoveWithPointDeletion(vectorID, vector.initialPoint, vector.terminalPoint);
 
