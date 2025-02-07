@@ -18,11 +18,13 @@ public class Repere : MonoBehaviour
         public Vector3 coordinates;
         public GameObject pointObject;
         public int id;
-        public GridPoint(Vector3 coordinates, GameObject pointObject, int id = -1)
+        public readonly int nameID;
+        public GridPoint(Vector3 coordinates, GameObject pointObject, int nameID, int id)
         {
             this.coordinates = coordinates;
             this.pointObject = pointObject;
             this.id = id;
+            this.nameID = nameID;
         }
     }
 
@@ -45,9 +47,9 @@ public class Repere : MonoBehaviour
 
     [Header("Points")]
     private List<GridPoint> points = new();
-    private List<bool> idExist = new();
     private bool isPointSelected = false;
-
+    private List<bool> pointNamesID = new();
+    
     private int selectedPointID = -1;
     [SerializeField] private Color pointBaseColor = Color.gray;
     [SerializeField] private Color pointSelectedColor = Color.yellow;
@@ -66,21 +68,19 @@ public class Repere : MonoBehaviour
     {
         CreateRepere();
         CreatePointByCoordinates(Vector3.down);
-        GameObject O = GetGridPointByID(CreatePointByCoordinates(Vector3.zero, id: 14)).pointObject;
-        GameObject I = GetGridPointByID(CreatePointByCoordinates(Vector3.right, id: 8)).pointObject;
-        GameObject J = GetGridPointByID(CreatePointByCoordinates(Vector3.up, id: 9)).pointObject;
-        O.GetComponent<Renderer>().material.color = new Color(0.3f, 0.3f, 0.3f, 1);
-        O.transform.localScale += 0.05f * scale * Vector3.one;
-        I.GetComponent<Renderer>().material.color = Color.grey;
-        I.transform.localScale += 0.025f * scale * Vector3.one;
-        J.GetComponent<Renderer>().material.color = Color.grey;
-        J.transform.localScale += 0.025f * scale * Vector3.one;
+        GridPoint O = points[CreatePointByCoordinates(Vector3.zero, 14)];
+        GridPoint I = points[CreatePointByCoordinates(Vector3.right, 8)];
+        GridPoint J = points[CreatePointByCoordinates(Vector3.up, 9)];
+        O.pointObject.GetComponent<Renderer>().material.color = new Color(0.3f, 0.3f, 0.3f, 1);
+        O.pointObject.transform.localScale += 0.05f * scale * Vector3.one;
+        I.pointObject.GetComponent<Renderer>().material.color = Color.grey;
+        I.pointObject.transform.localScale += 0.025f * scale * Vector3.one;
+        J.pointObject.GetComponent<Renderer>().material.color = Color.grey;
+        J.pointObject.transform.localScale += 0.025f * scale * Vector3.one;
 
-        CreateVectorWithTwoPoints(14, 8);
-        CreateVectorWithTwoPoints(9, 8);
-        SelectPoint(14);
-        leftTrigger.Enable();
-        rightTrigger.Enable();
+        CreateVectorWithTwoPoints(O.id,I.id );
+        CreateVectorWithTwoPoints(J.id, I.id);
+        SelectPoint(O.id);
     }
     void CreateRepere()
     {
@@ -119,7 +119,7 @@ public class Repere : MonoBehaviour
     //Destroy all points and vectors on the grid and reset the dictionnaries
     public void ClearGrid()
     {
-        foreach(GridPoint point in existingPoints())
+        foreach(GridPoint point in points)
         {
             //Si on doit itérer points par points pour faire quelque chose lors de la destruction
             Destroy(point.pointObject);
@@ -129,48 +129,51 @@ public class Repere : MonoBehaviour
             Destroy(vectors[vectorID].gameObject);
         }
         points = new List<GridPoint>(); //key = button id
-        idExist = new List<bool>();
         vectors = new Dictionary<int, Vector>();
         initialPoints = new Dictionary<int, int>(); //Key = VectorID, Value = InitialPointID
         terminalPoints = new Dictionary<int, int>();//Key = VectorID, Value = TerminalPointID
         DeselectAllObjects();
         GridModification.Invoke();
     }
-    private GridPoint getGridPointByID(int id)
+
+    private int GenerateNewPointNameID(int nameID = -1)
     {
-        Assert.IsTrue(id >= 0 && id < points.Count);
-        Assert.IsTrue(idExist[id]);
-        return points[id];
+        Assert.IsTrue(nameID >= -1);
+        if (nameID >= pointNamesID.Count)
+        {
+            while (pointNamesID.Count <= nameID) pointNamesID.Add(false);
+            pointNamesID[nameID] = true;
+            return nameID;
+        }
+        if (nameID != -1)
+        {
+            if (pointNamesID[nameID])
+            {
+                Debug.LogWarning("Creation of a point with a name that is already taken. Changing point Name");
+                return GenerateNewPointNameID();
+            }
+        }
+        for (int i = 0; i < pointNamesID.Count; i++)
+        {
+            if (!pointNamesID[i]) return i;
+        }
+        pointNamesID.Add(true);
+        return pointNamesID.Count -1;
     }
     //Create a point on the grid and generate the first available id for the point
     //Only int positioning for now, might reconsider for decimal using precision later
-    public int CreatePointByCoordinates(Vector3 pointCoord, int id = -1)
+    public int CreatePointByCoordinates(Vector3 pointCoord, int nameID = -1)
     {
-
-        if (id != -1 && id < idExist.Count)
-        {
-            Assert.IsTrue(!idExist[id]);
-        }
         Assert.IsTrue(Mathf.Abs(pointCoord.x) <= width && Mathf.Abs(pointCoord.y) <= height && Mathf.Abs(pointCoord.z) <= depth);
         Vector3 pointPos = new Vector3(pointCoord.x * scale, pointCoord.y * scale, pointCoord.z * scale);
-        if (id == -1)
-        {
-            id = 0;
-            while (id < idExist.Count() && idExist[id]) id++;
-        }
+        int id = -1;
         if (!pointExistAtCoordinates(pointCoord, out int existingPointID)) {
-            while (idExist.Count <= id)
-            {
-                idExist.Add(false);
-            }
-            idExist[id] = true;
-            while (points.Count <= id)
-            {
-                points.Add(new GridPoint());
-            }
+
             GameObject point = MathManager.instance.InstantiatePoint(pointPos, transform, scale);
-            points[id] = new GridPoint(pointCoord, point, id);
-            point.GetComponent<Point>().setName(PointIDToString(id).ToString());
+            id = points.Count; 
+            int trueNameID = GenerateNewPointNameID(id);
+            points.Add(new GridPoint(pointCoord, point, trueNameID, id));
+            point.GetComponent<Point>().setName(PointIDToString(trueNameID).ToString());
         }
         else
         {
@@ -182,13 +185,8 @@ public class Repere : MonoBehaviour
 
     bool pointExistAtCoordinates(Vector3 coords, out int id)
     {
-        for (int pointID = 0; pointID < idExist.Count; pointID++)
+        foreach (GridPoint point in points) 
         {
-            if (!idExist[pointID])
-            {
-                continue;
-            }
-            GridPoint point = GetGridPointByID(pointID);
             if (point.coordinates.Equals(coords))
             {
                 id = point.id;
@@ -199,29 +197,18 @@ public class Repere : MonoBehaviour
         return false;
     }
     //Used to create vectors with two points, shouldn't be used to create points in general. Use CreatePointByCoordinates instead
-    private int CreateTempPointByCoodinates(Vector3 pointCoord, int id = -1)
+    private int CreateTempPointByCoodinates(Vector3 pointCoord, int nameID = -1)
     {
-        if (id != -1 || id < idExist.Count)
-        {
-            Assert.IsTrue(!idExist[id]);
-        }
         Assert.IsTrue(Mathf.Abs(pointCoord.x) <= width && Mathf.Abs(pointCoord.y) <= height && Mathf.Abs(pointCoord.z) <= depth);
         Vector3 pointPos = new Vector3(pointCoord.x * scale, pointCoord.y * scale, pointCoord.z * scale);
-        if (id == -1)
-        {
-            id = 0;
-            while (id <= idExist.Count && idExist[id] ) id++;
-        }
-        while (idExist.Count <= id)
-        {
-            idExist.Add(false);
-        }
-        idExist[id] = true;
+        int id = -1;
 
         GameObject point = MathManager.instance.InstantiatePoint(pointPos, transform, scale);
-        points.Add(new GridPoint(pointCoord, point, id));
+        id = points.Count;
+        int trueNameID = GenerateNewPointNameID(id);
+        points.Add(new GridPoint(pointCoord, point, trueNameID, id));
+        point.GetComponent<Point>().setName(PointIDToString(trueNameID).ToString());
 
-        point.GetComponent<Point>().setName(PointIDToString(id).ToString());
         return id;
     }
     private void RemoveVectorPoints(int vectorID)
@@ -233,21 +220,11 @@ public class Repere : MonoBehaviour
     {
         return initialPoints.ContainsValue(id) || terminalPoints.ContainsValue(id);
     }
-    private GridPoint GetGridPointByID(int id)
-    {
-        Assert.IsTrue(id < idExist.Count && idExist[id]);
-        foreach (GridPoint point in points)
-        {
-            if (point.id == id) return point;
-        }
-        Debug.LogError("Trying to get point while ID doesn't exist");
-        return new GridPoint();
-    }
 
     public void VectorMoveWithPointDeletion(int vectorID, Vector3 newInitialPointCoord, Vector3 newTerminalPointCoord)
     {
-        GridPoint oldInitialPoint = GetGridPointByID(initialPoints[vectorID]);
-        GridPoint oldTerminalPoint = GetGridPointByID(terminalPoints[vectorID]);
+        GridPoint oldInitialPoint = points[initialPoints[vectorID]];
+        GridPoint oldTerminalPoint = points[terminalPoints[vectorID]];
         int newInitialPointID;
         int newTerminalPointID;
         RemoveVectorPoints(vectorID);
@@ -297,11 +274,11 @@ public class Repere : MonoBehaviour
             isPointSelected = false;
             selectedPointID = -1;
         }
-        GridPoint point = getGridPointByID(id);
+        GridPoint point = points[id];
         points.Remove(point);
         Destroy(point.pointObject);
-        idExist[id] = false;
         GridModification.Invoke();
+        pointNamesID[point.nameID] = false;
     }
     public int CreatePoint(Vector3 pos)
     {
@@ -316,13 +293,16 @@ public class Repere : MonoBehaviour
     }
     public Vector CreateVectorWithTwoPoints(int id1, int id2)
     {
+        Assert.IsTrue(0 <= id1 && id1 <= points.Count);
+        Assert.IsTrue(0 <= id2 && id2 <= points.Count);
+
         var offset = new Vector3(0, 0, 0);
         if (is2d)
         {
             offset = Vector3.back * 0.01f;
         }
 
-        GameObject v = MathManager.instance.InstantiateVector(GetGridPointByID(id1).coordinates + offset, GetGridPointByID(id2).coordinates + offset, transform, scale);
+        GameObject v = MathManager.instance.InstantiateVector(points[id1].coordinates + offset, points[id2].coordinates + offset, transform, scale);
         int id = NewVectorId();
         vectors[id] = v.GetComponent<Vector>();
         initialPoints[id] = id1;
@@ -352,7 +332,7 @@ public class Repere : MonoBehaviour
 
             isPointSelected = true;
             selectedPointID = id;
-            getGridPointByID(id).pointObject.GetComponent<Renderer>().material.color = pointSelectedColor;
+            points[id].pointObject.GetComponent<Renderer>().material.color = pointSelectedColor;
             return;
         }
         CreateVectorWithTwoPoints(selectedPointID, id);
@@ -376,7 +356,8 @@ public class Repere : MonoBehaviour
     }
     public string PointToString(int id)
     {
-        return string.Format("({0}; {1})", getGridPointByID(id).coordinates.x, getGridPointByID(id).coordinates.y);
+
+        return string.Format("({0}; {1})", points[id].coordinates.x, points[id].coordinates.y);
     }
     public string VectorToString(int id)
     {
@@ -385,7 +366,7 @@ public class Repere : MonoBehaviour
     }
     private Vector3 VectorCoordinates(int vectorID)
     {
-        return getGridPointByID(terminalPoints[vectorID]).coordinates - getGridPointByID(initialPoints[vectorID]).coordinates;
+        return points[terminalPoints[vectorID]].coordinates - points[initialPoints[vectorID]].coordinates;
     }
     public void DeselectAllObjects()
     {
@@ -393,30 +374,9 @@ public class Repere : MonoBehaviour
         DeselectAllVectors();
     }
 
-    private GridPoint[] existingPoints()
-    {
-        int count = 0;
-        for (int id = 0; id < idExist.Count; id++)
-        {
-            if (idExist[id]) count++;
-        }
-        GridPoint[] gridPoints = new GridPoint[count];
-        count = 0;
-        for (int id = 0;id < idExist.Count; id++)
-        {
-            if (idExist[id])
-            {
-                Debug.Log(id);
-                gridPoints[count] = getGridPointByID(id);
-                count++;
-            }
-        }
-        return gridPoints;
-
-    }
     public void DeselectAllPoints()
     {
-        foreach (GridPoint point in existingPoints())
+        foreach (GridPoint point in points)
         {
             DeselectPoint(point.id);
         }
@@ -431,7 +391,7 @@ public class Repere : MonoBehaviour
             isPointSelected = false;
         }
 
-        getGridPointByID(id).pointObject.GetComponent<Renderer>().material.color = pointBaseColor;
+        points[id].pointObject.GetComponent<Renderer>().material.color = pointBaseColor;
         
     }
     void DeselectAllVectors()
@@ -487,20 +447,22 @@ public class Repere : MonoBehaviour
     public void ChangeVectorInitialPoint(int vectorID, int newInitialPointID)
     {
         Assert.IsTrue(vectors.ContainsKey(vectorID));
-        Assert.IsTrue(idExist[newInitialPointID]);
+        Assert.IsTrue(newInitialPointID >= 0 && newInitialPointID < points.Count);
         initialPoints[vectorID] = newInitialPointID;
     }
     public void ChangeVectorTerminalPoint(int vectorID, int newTerminalPointID)
     {
         Assert.IsTrue(vectors.ContainsKey(vectorID));
-        Assert.IsTrue(idExist[newTerminalPointID]);
+        Assert.IsTrue(newTerminalPointID >= 0 && newTerminalPointID < points.Count);
         terminalPoints[vectorID] = newTerminalPointID;
     }
     public void MovePointToPos(int pointID, Vector3 pos, bool definitive = true)
     {
-        if (!idExist[pointID]) { return; }
+        if (!(pointID >= 0 && pointID < points.Count)) {
+            Debug.LogWarning("Trying to move point from point id that doesn't exist");
+            return; }
 
-        GridPoint point = getGridPointByID(pointID);
+        GridPoint point = points[pointID];
         //Move point
         point.pointObject.transform.position = pos;
 
@@ -569,7 +531,7 @@ public class Repere : MonoBehaviour
         {
             int initialPointID = initialPoints[vectorID];
             int terminalPointID = terminalPoints[vectorID];
-            Vector3 vDirection = getGridPointByID(terminalPointID).coordinates - getGridPointByID(initialPointID).coordinates;
+            Vector3 vDirection = points[terminalPointID].coordinates - points[initialPointID].coordinates;
             Vector3 xProduct = Vector3.Cross(vDirection, direction);
             if (xProduct.x <= Vector3.kEpsilon && xProduct.y <= Vector3.kEpsilon && xProduct.z <= Vector3.kEpsilon)
             {
@@ -585,7 +547,7 @@ public class Repere : MonoBehaviour
         {
             int initialPointID = initialPoints[vectorID];
             int terminalPointID = terminalPoints[vectorID];
-            float vMagnitude = Vector3.Magnitude(getGridPointByID(terminalPointID).coordinates - getGridPointByID(initialPointID).coordinates);
+            float vMagnitude = Vector3.Magnitude(points[terminalPointID].coordinates - points[initialPointID].coordinates);
             if (Mathf.Abs(vMagnitude - magnitude) <= Vector3.kEpsilon)
             {
                 
@@ -603,7 +565,7 @@ public class Repere : MonoBehaviour
     {
         foreach (int vectorID in vectors.Keys)
         {
-            if (getGridPointByID(initialPoints[vectorID]).coordinates == initialPointCoords && getGridPointByID(terminalPoints[vectorID]).coordinates == terminalPointCoords)
+            if (points[initialPoints[vectorID]].coordinates == initialPointCoords && points[terminalPoints[vectorID]].coordinates == terminalPointCoords)
             {
                 return true;
             }
@@ -614,12 +576,9 @@ public class Repere : MonoBehaviour
     public string GridContentToString()
     {
         string s = "Points :\n";
-        for (int pointID = 0; pointID < idExist.Count; pointID++)
+        foreach (GridPoint point in points) 
         {
-            if (!idExist[pointID])
-            {
-                continue;
-            }
+            int pointID = point.id;
             if (isPointSelected && selectedPointID == pointID)
             {
                 s += "<color=#" + ColorUtility.ToHtmlStringRGB(pointSelectedColor) + ">";
