@@ -361,3 +361,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pointName: {fileID: 6232858888806205509}
+  color: {r: 0.35686275, g: 0.35686275, b: 0.35686275, a: 1}

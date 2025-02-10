@@ -5,10 +5,11 @@ using TMPro;
 public class Point : MonoBehaviour
 {
     public TMP_Text pointName;
+    public Color color;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        changeColor(color);
     }
 
     public void setName(string name)
@@ -23,6 +24,7 @@ public class Point : MonoBehaviour
 
     public void changeColor(Color color)
     {
+        this.color = color;
         GetComponent<Renderer>().material.color = color;
     }
 

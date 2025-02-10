@@ -5,8 +5,14 @@ public class Vector : MonoBehaviour
     private bool isOnGrid = false;
     public Vector3 initialPoint = Vector3.zero;
     public Vector3 terminalPoint = Vector3.up;
+    public Color color = Color.gray;
     public bool IsMoving { get; set; }// Start is called once before the first execution of Update after the MonoBehaviour is created
     //Modify the size of the Vector
+
+    private void Start()
+    {
+        ChangeColor(color);
+    }
     public void ChangePointPosition(Vector3 newPosition, bool terminalPointMoving = true)
     {
         Transform shaft = transform.Find("Shaft");
@@ -56,6 +62,7 @@ public class Vector : MonoBehaviour
     }
     public void ChangeColor(Color color)
     {
+        this.color = color;
         foreach (Transform children in transform)
             children.gameObject.GetComponent<Renderer>().material.color = color;
     }

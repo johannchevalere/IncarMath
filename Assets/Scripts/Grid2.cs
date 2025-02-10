@@ -19,6 +19,28 @@ public class Grid2 : MonoBehaviour
     [Header("Vectors")]
     private Dictionary<int, GridVector> vectors = new Dictionary<int, GridVector>();
     int vectorNextID = 0;
+
+    [Header("Displayed Information")]
+    private GridSingleObject exhibitedObject = new GridSingleObject();
+    private GridSingleObject selectedObject = new GridSingleObject();
+    private enum gridObjectType { Point, Vector, Null }
+    private struct GridSingleObject
+    {
+        public gridObjectType type;
+        public int id;
+
+        public GridSingleObject(gridObjectType type = gridObjectType.Null, int exhibitedObjectID = -1)
+        {
+            this.type = type;
+            this.id = exhibitedObjectID;
+        }
+        
+        public void changeObject(gridObjectType type, int exhibitedObjectID)
+        {
+            this.type = type;
+            this.id = exhibitedObjectID;
+        }
+    }
     private struct GridPoint
     {
         public Vector3 coordinates;
@@ -49,11 +71,13 @@ public class Grid2 : MonoBehaviour
             this.vector = vector;
         }
     }
+    
+    
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         CreateGrid();
-        int id0 = CreatePoint(Vector3.zero);
+        int id0 = CreatePoint(Vector3.zero, nameID:15);
         int id1 = CreatePoint(Vector3.up + Vector3.right);
         CreateVector(id0, id1);
 
@@ -140,9 +164,11 @@ public class Grid2 : MonoBehaviour
         }
         //Creation of a new point
         GameObject point = MathManager.instance.InstantiatePoint(coordinates, transform);
+        
         int newID = pointNextID;
         pointNextID++;
         int pointNameID = GenerateNewNameID(nameID);
+        point.GetComponent<Point>().setName(NameIDToString(pointNameID));
         points[newID] = new GridPoint(coordinates, pointNameID, newID, point);
 
         //return new point id
@@ -375,4 +401,91 @@ public class Grid2 : MonoBehaviour
         return vector;
     }
 
+    private string NameIDToString(int nameID)
+    {
+        char c =  (char)(nameID);
+        c += 'A';
+        return c.ToString();
+    }
+
+    private string PointName(GridPoint point)
+    {
+        return NameIDToString(point.nameID);
+    }
+    private string PointName(int pointID)
+    {
+        return PointName(getGridPoint(pointID));
+    }
+    private string PointPositionToString(GridPoint point)
+    {
+        return point.coordinates.ToString();
+    }
+    private string PointPositionToString(int pointID)
+    {
+        return PointPositionToString(getGridPoint(pointID));
+    }
+    public string ExhibitText()
+    {
+        switch (exhibitedObject.type)
+        {
+            case gridObjectType.Null:
+                return "";
+                
+            case gridObjectType.Point:
+                //Change text color to match point color
+                string s = "<color=#" + ColorUtility.ToHtmlStringRGB(getGridPoint(exhibitedObject.id).pointObject.GetComponent<Point>().color) + ">";
+                //Display point name and position
+                return s + PointName(exhibitedObject.id) + " : " + PointPositionToString(exhibitedObject.id);
+            case gridObjectType.Vector:
+                //Todo: do this you lazy dev
+                return "Vector display not supported yet";
+            default:
+                Debug.LogError("exhibitedObject.type isn't supported");
+                return "";
+        }
+    }
+    private void ChangePointColor(GridPoint point, Color color)
+    {
+        point.pointObject.GetComponent<Point>().changeColor(color);
+    }
+    public void ChangePointColor(int pointID, Color color)
+    {
+        ChangePointColor(getGridPoint(pointID), color);
+    }
+    public void ExhibitPoint(int id)
+    {
+        exhibitedObject.changeObject(gridObjectType.Point, id);
+    }
+    public void ExhibitVector(int id)
+    {
+        exhibitedObject.changeObject(gridObjectType.Vector, id);
+    }
+    public void UnExhibit()
+    {
+        exhibitedObject.changeObject(gridObjectType.Null, -1);
+    }
+    public void SelectPoint(int id)
+    {
+        selectedObject.changeObject(gridObjectType.Point, id);
+    }
+    public void SelectVector(int id)
+    {
+        selectedObject.changeObject(gridObjectType.Vector, id);
+    }
+    public void UnSelect()
+    {
+        selectedObject.changeObject(gridObjectType.Null, -1);
+    }
+    public string GridContent()
+    {
+        string s = "";
+        foreach (int id in points.Keys)
+        {
+            GridPoint point = getGridPoint(id);
+            s += "color<" + ColorUtility.ToHtmlStringRGBA(point.pointObject.GetComponent<Point>().color) + ">";
+            s += PointName(point) + " : " + PointPositionToString(point);
+        }
+        //Todo: display vectors too
+        return s;
+    }
 }
