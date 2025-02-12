@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using UnityEngine;
 using System.Collections.Generic;
+using System.Collections;
 
 public class Grid2 : MonoBehaviour
 {
@@ -23,8 +24,15 @@ public class Grid2 : MonoBehaviour
     [Header("Displayed Information")]
     private GridSingleObject exhibitedObject = new GridSingleObject();
     private GridSingleObject selectedObject = new GridSingleObject();
+    public Color basicColor = Color.gray;
+    public Color selectedObjectColor = Color.blue;
     private enum gridObjectType { Point, Vector, Null }
-    private struct GridSingleObject
+
+    [Header("Still in dev")]
+    public bool displayVectorSum = true;
+    public Color vectorSumColor = Color.green;
+    private string vectorSumText = "";
+    private class GridSingleObject
     {
         public gridObjectType type;
         public int id;
@@ -41,7 +49,7 @@ public class Grid2 : MonoBehaviour
             this.id = exhibitedObjectID;
         }
     }
-    private struct GridPoint
+    private class GridPoint
     {
         public Vector3 coordinates;
         public readonly int nameID;
@@ -56,7 +64,7 @@ public class Grid2 : MonoBehaviour
             this.pointObject = pointObject;
         }
     }
-    private struct GridVector
+    private class GridVector
     {
         public GridPoint initialPoint;
         public GridPoint terminalPoint;
@@ -70,6 +78,14 @@ public class Grid2 : MonoBehaviour
             this.terminalPoint = terminalPoint;
             this.vector = vector;
         }
+        public void changeInitialPoint(GridPoint newInitialPoint)
+        {
+            this.initialPoint = newInitialPoint;
+        }
+        public void changeTerminalPoint(GridPoint newTerminalPoint)
+        {
+            this.terminalPoint = newTerminalPoint;
+        }
     }
     
     
@@ -80,14 +96,82 @@ public class Grid2 : MonoBehaviour
         int id0 = CreatePoint(Vector3.zero, nameID:15);
         int id1 = CreatePoint(Vector3.up + Vector3.right);
         CreateVector(id0, id1);
+        StartCoroutine(TestGrid2());
+    }
+    public IEnumerator showVectorSum(int vector1, int vector2)
+    {
+        if (!displayVectorSum)
+        {
+            Debug.LogError("ERROR::SHOWVECTORSUM::ACCESSED::WHILE::NOT::IN::VECTORSUM::MODE");
+            StopCoroutine("showVectorSum");
+        }
 
+        //Todo change colors of v1 and v2
+        GridVector v1 = getGridVector(vector1);
+        ChangeVectorColor(v1, Color.red);
+        GridVector v2 = getGridVector(vector2);
+        ChangeVectorColor(v2, Color.blue);
+
+
+        GameObject vsum = MathManager.instance.InstantiateVector(v1.initialPoint.coordinates, (v1.terminalPoint.coordinates + (v2.terminalPoint.coordinates - v2.initialPoint.coordinates)), transform);
+        vsum.GetComponent<Vector>().ChangeColor(vectorSumColor);
+        while (displayVectorSum)
+        {
+            vsum.GetComponent<Vector>().ChangePointPosition(v1.initialPoint.coordinates, false);
+            vsum.GetComponent<Vector>().ChangePointPosition(v1.terminalPoint.coordinates + (v2.terminalPoint.coordinates - v2.initialPoint.coordinates), true);
+            Vector3 vCoords = v1.terminalPoint.coordinates + v2.terminalPoint.coordinates - v1.initialPoint.coordinates - v2.initialPoint.coordinates;
+            //Change exhibited text
+            vectorSumText = VectorColorToString(vector1) + VectorName(vector1) + "<color=#000000> + ";
+            vectorSumText += VectorColorToString(vector2) + VectorName(vector2) + "<color=#000000> = ";
+            vectorSumText += "<color=#" + ColorUtility.ToHtmlStringRGBA(vsum.GetComponent<Vector>().color) + ">";
+            vectorSumText += string.Format("({0}; {1})", vCoords.x, vCoords.y);
+
+            yield return null;
+        }
     }
 
+    public string VectorColorToString(int id)
+    {
+        GridVector vector = getGridVector(id);
+        return "<color=#" + ColorUtility.ToHtmlStringRGBA(vector.vector.GetComponent<Vector>().color) + ">";
+    }
+    public void changeVectorSum()
+    {
+        displayVectorSum = !displayVectorSum;
+    }
+    IEnumerator TestGrid2()
+    {
+        yield return new WaitForSeconds(0.5f);
+        int B = CreatePoint(Vector3.right);
+        yield return new WaitForSeconds(0.5f);
+        int C = CreatePoint(Vector3.up);
+        yield return new WaitForSeconds(0.5f);
+        int v1 = CreateVector(B, C);
+        yield return new WaitForSeconds(0.5f);
+        MoveVector(v1,2 * Vector3.right, 2 * Vector3.up);
+        yield return new WaitForSeconds(0.5f);
+        
+
+        MovePoint(B, Vector3.left);
+        yield return new WaitForSeconds(0.5f);
+        MovePoint(B, Vector3.zero);
+        yield return new WaitForSeconds(0.5f);
+        MovePoint(B, Vector3.up);
+
+        yield return new WaitForSeconds(0.5f);
+        MovePoint(1, Vector3.up + 2 * Vector3.right);
+        MovePoint(B, Vector3.up + Vector3.right);
+        yield return new WaitForSeconds(0.5f);
+        int D = CreatePoint(Vector3.down);
+        int v2 = CreateVector(B, D);
+        VectorSum(v1, v2);
+    }
     // Update is called once per frame
     void Update()
     {
         
     }
+    
     void CreateGrid()
     {
         gameObject.transform.localScale = new Vector3(scale, scale, scale);
@@ -126,6 +210,32 @@ public class Grid2 : MonoBehaviour
             }
         }
     }
+    public void ClearGrid()
+    {
+        UnSelect();
+        UnExhibit();
+        List<int> pointToDelete = new List<int>();
+        List<int> vectorsToDelete = new List<int>();
+
+        foreach (int pointID in points.Keys)
+        {
+            pointToDelete.Add(pointID);
+        }
+        foreach (int vectorID in vectors.Keys)
+        {
+            vectorsToDelete.Add(vectorID);
+        }
+        foreach (var vectorID in vectorsToDelete)
+        {
+            DeleteVector(vectorID); 
+        }
+        foreach (var pointID in pointToDelete)
+        {
+            DeletePoint(pointID);
+        }
+        vectors = new Dictionary<int, GridVector>();
+        points = new Dictionary<int, GridPoint>();
+    }
     private GridPoint getGridPoint(int id)
     {
         if (!points.ContainsKey(id))
@@ -135,7 +245,7 @@ public class Grid2 : MonoBehaviour
         }
         return points[id];
     }
-    private bool TryGetPointByCoordinates(Vector3 coordinates, out int existingPointID)
+    public bool TryGetPointByCoordinates(Vector3 coordinates, out int existingPointID)
     {
         foreach (GridPoint point in points.Values)
         {
@@ -167,6 +277,7 @@ public class Grid2 : MonoBehaviour
         
         int newID = pointNextID;
         pointNextID++;
+        
         int pointNameID = GenerateNewNameID(nameID);
         point.GetComponent<Point>().setName(NameIDToString(pointNameID));
         points[newID] = new GridPoint(coordinates, pointNameID, newID, point);
@@ -179,10 +290,22 @@ public class Grid2 : MonoBehaviour
     {
         //Todo: Assert coordinates are in grid Space
         GridPoint point = getGridPoint(id);
-        //Fuse point if asked to do it and point already exist in coordinates
+
+        //Todo: Move vectors associated with point
+        foreach ( GridVector v in VectorsWithInitialPoint(id))
+        {
+            v.vector.ChangePointPosition(coordinates,false);
+        }
+        foreach ( GridVector v in VectorsWithTerminalPoint(id))
+        {
+            v.vector.ChangePointPosition(coordinates, true);
+        }
+
+                //Fuse point if asked to do it and point already exist in coordinates
         if (fusePoint && TryGetPointByCoordinates(coordinates, out int existingPointID)) 
         {
-            FusePoint(id, existingPointID);
+            if (!(existingPointID == id))
+                FusePoint(id, existingPointID);
             //Might need to return here if Fusing destroy the moved point
         }
 
@@ -190,12 +313,13 @@ public class Grid2 : MonoBehaviour
         point.coordinates = coordinates;
         point.pointObject.transform.localPosition = coordinates;
         
-        //Todo: Move vectors associated with point
-
-        return;
+                return;
     }
     public void DeletePoint(int id)
     {
+        if (selectedObject.id == id && selectedObject.type == gridObjectType.Point) UnSelect();
+        if (exhibitedObject.id == id && exhibitedObject.type == gridObjectType.Point) UnExhibit();
+
         GridPoint point = getGridPoint(id);
 
         //Deleting Vectors linked to point
@@ -216,9 +340,17 @@ public class Grid2 : MonoBehaviour
     {
         DeletePoint(gridPoint.id);
     }
+    private void DeleteVector(GridVector vector)
+    {
+        DeleteVector(vector.id);
+    }
     public void DeleteVector(int id)
     {
-        //Todo implement this
+        if (selectedObject.id == id && selectedObject.type == gridObjectType.Vector) UnSelect();
+        if (exhibitedObject.id == id && exhibitedObject.type == gridObjectType.Vector) UnExhibit();
+        GridVector vector = getGridVector(id);
+        vectors.Remove(id);
+        Destroy(vector.vector.gameObject);
     }
 
     public Vector3 AboslutePositionToCoordinates(Vector3 position)
@@ -241,6 +373,7 @@ public class Grid2 : MonoBehaviour
             {
                 if (!isNameIDExisting[i])
                 {
+                    isNameIDExisting[i] = true;
                     return i;
                 }
             }
@@ -284,29 +417,32 @@ public class Grid2 : MonoBehaviour
 
     private List<GridVector> VectorsWithInitialPoint(int initialPointID)
     {
-        Assert.IsTrue (initialPointID >= 0 && initialPointID < points.Count);
-        List<GridVector> vectors = new List<GridVector>();
-        foreach(GridVector vector in vectors)
+
+        Assert.IsTrue(points.ContainsKey(initialPointID));
+        List<GridVector > result = new List<GridVector>();
+        foreach(int vectorID in vectors.Keys)
         {
+            GridVector vector = getGridVector(vectorID);
             if (vector.initialPoint.id == initialPointID)
             {
-                vectors.Add(vector);
+                result.Add(vector);
             }
         }
-        return vectors;
+        return result;
     }
     private List<GridVector> VectorsWithTerminalPoint(int terminalPointID)
     {
-        Assert.IsTrue (terminalPointID >= 0 && terminalPointID < points.Count);
-        List<GridVector> vectors = new List<GridVector>();
-        foreach(GridVector vector in vectors)
+        Assert.IsTrue(points.ContainsKey(terminalPointID));
+        List<GridVector> result = new List<GridVector>();
+        foreach(int vectorID in vectors.Keys)
         {
+            GridVector vector = getGridVector(vectorID);
             if (vector.terminalPoint.id == terminalPointID)
             {
-                vectors.Add(vector);
+                result.Add(vector);
             }
         }
-        return vectors;
+        return result;
     }
 
     private List<GridVector> VectorsAssociatedWithPoint(int pointID)
@@ -318,14 +454,13 @@ public class Grid2 : MonoBehaviour
     private void ChangeInitialPoint(GridVector vector, int id)
     {
         //Todo: Asserts
-        GridPoint point = getGridPoint(id);
-        vector.initialPoint = point;
-        //Todo: change vector position
+        GridPoint initialPoint = getGridPoint(id);
+        vector.changeInitialPoint(initialPoint);
     }
     private void ChangeTerminalPoint(GridVector vector, int id)
     {
         GridPoint terminalPoint = getGridPoint(id);
-        vector.terminalPoint = terminalPoint;
+        vector.changeTerminalPoint(terminalPoint);
         //Todo: Change vector position
     }
 
@@ -349,6 +484,7 @@ public class Grid2 : MonoBehaviour
     public void MoveVector(int vectorID, Vector3 newInitialPointCoord, Vector3 newTerminalPointCoord)
     {
         //Todo: Assert coords are in bound
+        Assert.IsTrue(Mathf.Abs(newInitialPointCoord.x) <= width && Mathf.Abs(newTerminalPointCoord.y) <= height, "Vector moved out of bounds"); 
         GridVector vector = getGridVector(vectorID);
 
         //Using getGridPoint for the assertions, not really needed
@@ -393,7 +529,7 @@ public class Grid2 : MonoBehaviour
     private GridVector getGridVector(int id)
     {
         //Verifications and assertions
-        Assert.IsTrue(vectors.ContainsKey(id));
+        
         GridVector vector = vectors[id];
         getGridPoint(vector.initialPoint.id);
         getGridPoint(vector.terminalPoint.id);
@@ -416,16 +552,41 @@ public class Grid2 : MonoBehaviour
     {
         return PointName(getGridPoint(pointID));
     }
+    private string VectorName(GridVector vector)
+    {
+        return PointName(vector.initialPoint) + PointName(vector.terminalPoint);
+    }
+    private string VectorName(int vectorID)
+    {
+        return VectorName(getGridVector(vectorID));
+    }
     private string PointPositionToString(GridPoint point)
     {
-        return point.coordinates.ToString();
+        return string.Format("({0};{1})", point.coordinates.x, point.coordinates.y);
     }
     private string PointPositionToString(int pointID)
     {
         return PointPositionToString(getGridPoint(pointID));
     }
+    private string VectorPositionToString(GridVector vector)
+    {
+        Vector3 vectorCoordinates = vector.terminalPoint.coordinates - vector.initialPoint.coordinates;
+        return string.Format("({0};{1})", vectorCoordinates.x, vectorCoordinates.y);
+    }
+    private string VectorPositionToString(int id)
+    {
+        return VectorPositionToString(getGridVector(id));
+    }
     public string ExhibitText()
     {
+        string s = "";
+        //In case of vector sum, the exhibited text should be the vectorial sum
+        if (displayVectorSum && !vectorSumText.Equals(""))
+        {
+            return vectorSumText;
+        }
+
+
         switch (exhibitedObject.type)
         {
             case gridObjectType.Null:
@@ -433,12 +594,13 @@ public class Grid2 : MonoBehaviour
                 
             case gridObjectType.Point:
                 //Change text color to match point color
-                string s = "<color=#" + ColorUtility.ToHtmlStringRGB(getGridPoint(exhibitedObject.id).pointObject.GetComponent<Point>().color) + ">";
+                s = "<color=#" + ColorUtility.ToHtmlStringRGB(getGridPoint(exhibitedObject.id).pointObject.GetComponent<Point>().color) + ">";
                 //Display point name and position
                 return s + PointName(exhibitedObject.id) + " : " + PointPositionToString(exhibitedObject.id);
             case gridObjectType.Vector:
-                //Todo: do this you lazy dev
-                return "Vector display not supported yet";
+                s = "<color=#" + ColorUtility.ToHtmlStringRGB(getGridVector(exhibitedObject.id).vector.GetComponent<Vector>().color) + ">";
+//Todo: do this you lazy dev
+                return s + VectorName(exhibitedObject.id) + " : " + VectorPositionToString(exhibitedObject.id);
             default:
                 Debug.LogError("exhibitedObject.type isn't supported");
                 return "";
@@ -451,6 +613,14 @@ public class Grid2 : MonoBehaviour
     public void ChangePointColor(int pointID, Color color)
     {
         ChangePointColor(getGridPoint(pointID), color);
+    }
+    private void ChangeVectorColor(GridVector vector, Color color)
+    {
+        vector.vector.GetComponent<Vector>().ChangeColor(color);
+    }
+    public void ChangeVectorColor(int vectorID, Color color)
+    {
+        ChangeVectorColor(getGridVector(vectorID), color);
     }
     public void ExhibitPoint(int id)
     {
@@ -466,26 +636,99 @@ public class Grid2 : MonoBehaviour
     }
     public void SelectPoint(int id)
     {
+        UnSelect();
+        GridPoint point = getGridPoint(id);
+        point.pointObject.GetComponent<Point>().changeColor(selectedObjectColor);
         selectedObject.changeObject(gridObjectType.Point, id);
+        ExhibitPoint(id);
     }
     public void SelectVector(int id)
     {
+        UnSelect();
+        GridVector vector = getGridVector(id);
+        vector.vector.GetComponent<Vector>().ChangeColor(selectedObjectColor);
         selectedObject.changeObject(gridObjectType.Vector, id);
+        ExhibitVector(id);
     }
     public void UnSelect()
     {
+        //Changing back old selected object to old color
+        switch(selectedObject.type)
+        {
+            case (gridObjectType.Point):
+                ChangePointColor(selectedObject.id,basicColor);
+                break;
+            case (gridObjectType.Vector):
+                ChangeVectorColor(selectedObject.id,basicColor);
+                break;
+            default:
+                break;
+        }
+        //Changing selected object to nothing
         selectedObject.changeObject(gridObjectType.Null, -1);
     }
     public string GridContent()
     {
+
         string s = "";
+        s += "Points\n\n";
         foreach (int id in points.Keys)
         {
             GridPoint point = getGridPoint(id);
-            s += "color<" + ColorUtility.ToHtmlStringRGBA(point.pointObject.GetComponent<Point>().color) + ">";
+            s += "<color=#" + ColorUtility.ToHtmlStringRGBA(point.pointObject.GetComponent<Point>().color) + ">";
             s += PointName(point) + " : " + PointPositionToString(point);
+            s += "\n";
+        }
+        s += "Vectors\n\n";
+        foreach (int id in vectors.Keys)
+        {
+            GridVector vector = vectors[id];
+            s += "<color=#" + ColorUtility.ToHtmlStringRGBA(vector.vector.GetComponent<Vector>().color) + ">";
+            s += VectorName(vector) + " : " + VectorPositionToString(vector);
+            s += "\n";
         }
         //Todo: display vectors too
         return s;
+    }
+    public string VectorIDS(int id)
+    {
+        return string.Format("initial point = {0}; terminal point = {1}", vectors[id].initialPoint.id, vectors[id].terminalPoint.id);
+    }
+    public Vector3 PosToCoord(Vector3 pos)
+    {
+        return (pos - transform.position) / transform.localScale.x;
+    }
+    public Vector3 PosToRoundCoord(Vector3 pos)
+    {
+        Vector3 coords = PosToCoord(pos);
+        return new Vector3(Mathf.Round(coords.x), Mathf.Round(coords.y), Mathf.Round(coords.z));
+    }
+    public Vector3 CoordToPos(Vector3 coord)
+    {
+        return (scale * coord) + transform.position;
+    }
+
+    public int GetVectorId(Vector vector)
+    {
+        foreach (KeyValuePair<int, GridVector> pair in vectors)
+        {
+            if (pair.Value.vector.Equals(vector)) return pair.Key;
+        }
+        Debug.LogWarning("could not find vector in vectors list on the grid");
+        return -1;
+    }
+    public bool isVectorSelected(out int selectedVectorID)
+    {
+        if (selectedObject.type == gridObjectType.Vector)
+        {
+            selectedVectorID = selectedObject.id;
+            return true;
+        }
+        selectedVectorID = -1;
+        return false;
+    }
+    public void VectorSum(int v1, int v2)
+    {
+        StartCoroutine(showVectorSum(v1, v2));
     }
 }

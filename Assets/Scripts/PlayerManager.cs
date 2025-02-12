@@ -8,7 +8,7 @@ using UnityEngine.Rendering.Universal;
 public class PlayerManager : MonoBehaviour
 {
     private int state = 0;
-    [SerializeField] Repere grid;
+    [SerializeField] Grid2 grid;
     [SerializeField] XRRayInteractor rayInteractor;
     [SerializeField] Transform pointer;
     [SerializeField] InputActionAsset gridActionAsset;
@@ -18,26 +18,40 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] TMP_Text text;
 
     Vector3 pointerPositionOnGrid;
+    Vector3 pointerRoundCoords;
     int currentPointID;
 
-
+    private void Start()
+    {
+        StartCoroutine(pointerPosition( 0.05f));
+    }
     private void Update()
     {
-        //text.text = grid.NbPoints().ToString();
-        if (rayInteractor.TryGetCurrent3DRaycastHit(out RaycastHit hit))
-        {
-            
-            pointerPositionOnGrid = hit.point;
-            pointer.position = grid.CoordToPos(grid.PosToRoundCoord(hit.point));
-            if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Vector"))
-            {
-                pointerPositionOnGrid.z = grid.transform.position.z;
             }
-        }   
-
-        if (!grid.SelectedToString().Equals(""))
+    IEnumerator pointerPosition(float refreshrate)
+    {
+        while (true)
         {
-            text.text = grid.SelectedToString();
+
+            yield return new WaitForSeconds(refreshrate);
+            //text.text = grid.NbPoints().ToString();
+            if (rayInteractor.TryGetCurrent3DRaycastHit(out RaycastHit hit))
+            {
+                pointerPositionOnGrid = hit.point;
+                pointer.position = grid.CoordToPos(pointerRoundCoords);
+                if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Vector"))
+                {
+                    pointerPositionOnGrid.z = grid.transform.position.z;
+                }
+                pointerRoundCoords = grid.PosToRoundCoord(pointerPositionOnGrid);
+                text.text = pointerRoundCoords.ToString();
+            }
+
+            if (!grid.ExhibitText().Equals(""))
+        {
+            text.text = grid.ExhibitText();
+        }
+
         }
     }
     private void OnSelect()
@@ -46,17 +60,30 @@ public class PlayerManager : MonoBehaviour
         {
             if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Vector"))
             {
-                grid.SelectVector(grid.GetVectorId(hit.collider.transform.parent.GetComponent<Vector>()));
+                //If we are in the display mode for vector sums, and a different vector than the one we hit was selected, we display the vectorial sum
+                int vectorID = grid.GetVectorId(hit.collider.transform.parent.GetComponent<Vector>());
+                if (grid.isVectorSelected(out int oldVectorID))
+                {
+                    if (vectorID != oldVectorID)
+                    {
+                        grid.VectorSum(oldVectorID, vectorID);
+                    }
+                }
+                grid.SelectVector(vectorID);
                 return;
             }
 
-            if (grid.TrySelectPointByPos(hit.point, out int id))
+            if (grid.TryGetPointByCoordinates(pointerRoundCoords, out int id))
             {
+                grid.SelectPoint(id);
                 currentPointID = id;
-                //Todo afficher les informations du point
+                //Can create vector if another point was already selected
+
                 return;
             }//if a point exists at current coordinates, we select it and end method
-            currentPointID = grid.CreatePoint(hit.point); //else we create a point. Storing point id in case new vector is created
+            currentPointID = grid.CreatePoint(pointerRoundCoords); //else we create a point. Storing point id in case new vector is created
+            if (grid.TryGetPointByCoordinates(pointerRoundCoords, out int testPointID)) {
+            } 
         }
     }
     private void OnHoldSelect()
@@ -71,10 +98,9 @@ public class PlayerManager : MonoBehaviour
     {
         if (rayInteractor.TryGetCurrent3DRaycastHit(out RaycastHit hit))
         {
-            if (grid.TryGetPointIdByPos(hit.point, out int id))
+            if (grid.TryGetPointByCoordinates(pointerRoundCoords, out int id))
             {
-                Debug.Log("Moving point with grab");
-                StartCoroutine(MovePoint(hit.point));
+                StartCoroutine(MovePoint(id));
                 return;
             }
             if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Vector"))
@@ -84,52 +110,48 @@ public class PlayerManager : MonoBehaviour
         }
 
     }
-    IEnumerator MovePoint(Vector3 pos)
+    IEnumerator MovePoint(int pointID)
     {
         InputAction grab = gridActionAsset.FindActionMap("Grid").FindAction("Grab");
         if (grab != null) {
-            grid.TryGetPointIdByPos(pos, out int id);
             while (grab.ReadValue<float>() > 0f)
             {
-                grid.MovePointToPos(id, grid.CoordToPos(grid.PosToRoundCoord(pointerPositionOnGrid)), false);
+                grid.MovePoint(pointID, pointerRoundCoords,false);
                 yield return new WaitForSeconds(0.1f);
             }
-            //Definitive move to change dictionnaries
-            grid.MovePointToPos(id, grid.CoordToPos(grid.PosToRoundCoord(pointerPositionOnGrid)), true);
+            grid.MovePoint(pointID, pointerRoundCoords, true);
         }
     }
     IEnumerator CreateVectorHold()
     {
         InputAction hold = gridActionAsset.FindActionMap("Grid").FindAction("Hold Select");
-        int terminalPointID = grid.CreateTempPoint(pointerPositionOnGrid);
-        Vector v = grid.CreateVectorWithTwoPoints(currentPointID, terminalPointID);
-        grid.SelectVector(grid.GetVectorId(v));
+        int terminalPointID = grid.CreatePoint(pointerRoundCoords, fusePoint : false);
+        int v = grid.CreateVector(currentPointID, terminalPointID);
+        grid.SelectVector(v);
+        Vector3 nextPointCoord = pointerRoundCoords;
         if (hold != null)
         {
             while(hold.ReadValue<float>() > 0f)
             {
-                Debug.Log("Create vector hold");
-
-                Vector3 nextPointPosition = pointerPositionOnGrid;
+                nextPointCoord = pointerRoundCoords;
                 //CHANGER LA VALEUR DE POINTERPOSITIONON GRID DANS CETTE FONCTION POUR CHANGER LES CONDITIONS DE CONGRUENCES
                 if (lowCongruence)
                 {
                     
                 }
 
-                grid.MovePointToPos(terminalPointID, grid.CoordToPos(grid.PosToRoundCoord(nextPointPosition)), false);
+                grid.MovePoint(terminalPointID, nextPointCoord, false);
                 yield return new WaitForSeconds(0.1f);
             }
-            //TRES TRES MOCHE, Y a un bug qui fait que quand on créé un point et qu'on reste appuyé pour faire un vecteur, le point n'est pas bien enregistré... Sparadrap en attendant d'avoir quelque chose de mieux.
-            grid.MovePointToPos(currentPointID, grid.CoordToPos(v.initialPoint), true);
-
-            grid.MovePointToPos(terminalPointID,grid.CoordToPos(grid.PosToRoundCoord(pointerPositionOnGrid)), true);
+            
+            grid.MovePoint(terminalPointID, nextPointCoord, true);
         }
     }
     IEnumerator MoveVector(Vector vector)
     {
         //Todo: Vector can be placed out of grid then crash
         //TODO: use specific colors designed in grid (Or in vector ?? Maybe do a mathObject ?) for vector when displaced/selected
+        //Todo : revisit all this crappy old code
         InputAction grab = gridActionAsset.FindActionMap("Grid").FindAction("Grab");
         Vector3 initialPointerPos = pointerPositionOnGrid;
         vector.transform.Find("Shaft").GetComponent<CapsuleCollider>().enabled = false;
@@ -158,20 +180,8 @@ public class PlayerManager : MonoBehaviour
             //Definitive move and changing dictionnaries
             vector.ChangePointPosition(vector.initialPoint + 0.3f * grid.transform.forward, false);
             vector.ChangePointPosition(vector.terminalPoint + 0.3f * grid.transform.forward, true);
-            //Deleting old points that aren't linked to any vectors
-            //Keeping that here for now but will remove it when i'm sure the other version works with 0 problems
-            /*
-            if (!grid.IsPointLinkedToVectors(oldTerminalPointID)) grid.DeletePoint(oldTerminalPointID);
-            if (!grid.IsPointLinkedToVectors(oldInitialPointID)) grid.DeletePoint(oldInitialPointID);
-
-            int initialPointID = grid.CreatePointByCoordinates(vector.initialPoint);
-            int terminalPointID = grid.CreatePointByCoordinates(vector.terminalPoint);
-            int vectorID = grid.GetVectorId(vector);
-            grid.ChangeVectorInitialPoint(vectorID, initialPointID);
-            grid.ChangeVectorTerminalPoint(vectorID, terminalPointID);
-            */
-
-            grid.VectorMoveWithPointDeletion(vectorID, vector.initialPoint, vector.terminalPoint);
+            
+            grid.MoveVector(vectorID, vector.initialPoint, vector.terminalPoint);
 
         }
     }

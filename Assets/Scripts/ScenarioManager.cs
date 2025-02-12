@@ -9,6 +9,7 @@ public class ScenarioManager : MonoBehaviour
     enum State { Exercise, Explanation}
     public static ScenarioManager instance;
     public Repere exerciseGrid;
+    public Grid2 grid2;
     public TMP_Text instructionText;
     public GameObject popUpUI;
     public GameObject playerManager;
@@ -174,6 +175,6 @@ public class ScenarioManager : MonoBehaviour
     }
     private void DisplayGridContent()
     {
-        gridContentText.text = exerciseGrid.GridContentToString();
+        gridContentText.text = grid2.GridContent();
     }
 }
