@@ -2,6 +2,7 @@ using NUnit.Framework;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
+using TMPro;
 
 public class Grid2 : MonoBehaviour
 {
@@ -28,10 +29,13 @@ public class Grid2 : MonoBehaviour
     public Color selectedObjectColor = Color.blue;
     private enum gridObjectType { Point, Vector, Null }
 
-    [Header("Still in dev")]
+    [Header("Vectorial Sum")]
     public bool displayVectorSum = true;
     public Color vectorSumColor = Color.green;
     private string vectorSumText = "";
+
+    [Header("Still in dev")]
+    public TMP_Text vectorTestText;
     private class GridSingleObject
     {
         public gridObjectType type;
@@ -98,7 +102,7 @@ public class Grid2 : MonoBehaviour
         CreateVector(id0, id1);
         StartCoroutine(TestGrid2());
     }
-    public IEnumerator showVectorSum(int vector1, int vector2)
+    public IEnumerator showVectorSum(int vector1, int vector2, string vectorSumName = "v")
     {
         if (!displayVectorSum)
         {
@@ -120,11 +124,14 @@ public class Grid2 : MonoBehaviour
             vsum.GetComponent<Vector>().ChangePointPosition(v1.initialPoint.coordinates, false);
             vsum.GetComponent<Vector>().ChangePointPosition(v1.terminalPoint.coordinates + (v2.terminalPoint.coordinates - v2.initialPoint.coordinates), true);
             Vector3 vCoords = v1.terminalPoint.coordinates + v2.terminalPoint.coordinates - v1.initialPoint.coordinates - v2.initialPoint.coordinates;
+            string vSumColorString = "<color=#" + ColorUtility.ToHtmlStringRGBA(vsum.GetComponent<Vector>().color) + ">";
             //Change exhibited text
             vectorSumText = VectorColorToString(vector1) + VectorName(vector1) + "<color=#000000> + ";
             vectorSumText += VectorColorToString(vector2) + VectorName(vector2) + "<color=#000000> = ";
-            vectorSumText += "<color=#" + ColorUtility.ToHtmlStringRGBA(vsum.GetComponent<Vector>().color) + ">";
-            vectorSumText += string.Format("({0}; {1})", vCoords.x, vCoords.y);
+            vectorSumText += vSumColorString + vectorSumName + "\n";
+            vectorSumText += VectorColorToString(vector1) + VectorPositionToString(vector1) + "<color=#000000> + ";
+            vectorSumText += VectorColorToString(vector2) + VectorPositionToString(vector2) + "<color=#000000> = ";
+            vectorSumText += vSumColorString + string.Format("({0}; {1})", vCoords.x, vCoords.y);
 
             yield return null;
         }
@@ -141,35 +148,53 @@ public class Grid2 : MonoBehaviour
     }
     IEnumerator TestGrid2()
     {
-        yield return new WaitForSeconds(0.5f);
-        int B = CreatePoint(Vector3.right);
-        yield return new WaitForSeconds(0.5f);
-        int C = CreatePoint(Vector3.up);
-        yield return new WaitForSeconds(0.5f);
-        int v1 = CreateVector(B, C);
-        yield return new WaitForSeconds(0.5f);
-        MoveVector(v1,2 * Vector3.right, 2 * Vector3.up);
-        yield return new WaitForSeconds(0.5f);
-        
+        yield return new WaitForEndOfFrame();
+        ClearGrid();
+        yield return new WaitForEndOfFrame();
+        int A = CreatePoint(Vector3.zero,fusePoint:false);
+        int B = CreatePoint(Vector3.zero,fusePoint:false);
+        int v = CreateVector(A, B);
+        SelectVector(v);
+        yield return new WaitForSeconds(1f);
+        MovePoint(B, Vector3.right,fusePoint:false);
+        yield return new WaitForSeconds(3f);
+        MovePoint(B, Vector3.zero,fusePoint:false);
 
-        MovePoint(B, Vector3.left);
-        yield return new WaitForSeconds(0.5f);
-        MovePoint(B, Vector3.zero);
-        yield return new WaitForSeconds(0.5f);
-        MovePoint(B, Vector3.up);
-
-        yield return new WaitForSeconds(0.5f);
-        MovePoint(1, Vector3.up + 2 * Vector3.right);
-        MovePoint(B, Vector3.up + Vector3.right);
-        yield return new WaitForSeconds(0.5f);
-        int D = CreatePoint(Vector3.down);
-        int v2 = CreateVector(B, D);
-        VectorSum(v1, v2);
     }
+
+    public void AddToVector(int id, Vector3 coordsToAdd)
+    {
+        GridVector v = getGridVector(id);
+        Vector3 oldTerminalPointCoords = v.terminalPoint.coordinates;
+        MovePoint(v.terminalPoint.id, oldTerminalPointCoords + coordsToAdd, fusePoint:false);
+    }
+    public void AddToSelectedVector(Vector3 coordsToAdd)
+    {
+        Assert.IsTrue(selectedObject.type == gridObjectType.Vector, "Trying to modify selected vector coords when selected object isn't vector");
+        AddToVector(selectedObject.id, coordsToAdd);
+    }
+    public void SelectedVectorXMinusOne()
+    {
+        AddToSelectedVector(Vector3.left);
+    }
+    public void SelectedVectorXPlusOne()
+    {
+        AddToSelectedVector(Vector3.right);
+    }
+    public void SelectedVectorYMinusOne()
+    {
+        AddToSelectedVector(Vector3.down);
+    }
+    public void SelectedVectorYPlusOne()
+    {
+        AddToSelectedVector(Vector3.up);
+    }
+
     // Update is called once per frame
     void Update()
     {
-        
+        if (selectedObject.type == gridObjectType.Vector)
+        vectorTestText.text = VectorColorToString(selectedObject.id) + VectorPositionToString(selectedObject.id);
     }
     
     void CreateGrid()
