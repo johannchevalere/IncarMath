@@ -121,6 +121,9 @@ public class Grid2 : MonoBehaviour
         vsum.GetComponent<Vector>().ChangeColor(vectorSumColor);
         while (displayVectorSum)
         {
+            ChangeVectorColor(v1, Color.red);
+            ChangeVectorColor(v2, Color.blue);
+            vsum.GetComponent<Vector>().ChangeColor(vectorSumColor);
             vsum.GetComponent<Vector>().ChangePointPosition(v1.initialPoint.coordinates, false);
             vsum.GetComponent<Vector>().ChangePointPosition(v1.terminalPoint.coordinates + (v2.terminalPoint.coordinates - v2.initialPoint.coordinates), true);
             Vector3 vCoords = v1.terminalPoint.coordinates + v2.terminalPoint.coordinates - v1.initialPoint.coordinates - v2.initialPoint.coordinates;
