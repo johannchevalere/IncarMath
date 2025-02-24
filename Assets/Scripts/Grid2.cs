@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
 using TMPro;
+using UnityEngine.Events;
 
 public class Grid2 : MonoBehaviour
 {
@@ -36,6 +37,13 @@ public class Grid2 : MonoBehaviour
 
     [Header("Still in dev")]
     public TMP_Text vectorTestText;
+
+    [Header("Events")]
+    public UnityEvent GridAddPoint;
+    public UnityEvent GridDeletePoint;
+    public UnityEvent GridVectorSum;
+    public UnityEvent GridSelectPoint;
+    public UnityEvent GridSelectVector;
     private class GridSingleObject
     {
         public gridObjectType type;
@@ -310,6 +318,8 @@ public class Grid2 : MonoBehaviour
         point.GetComponent<Point>().setName(NameIDToString(pointNameID));
         points[newID] = new GridPoint(coordinates, pointNameID, newID, point);
 
+        //Invoke AddPoint event for potential listeners
+        GridAddPoint.Invoke();
         //return new point id
         return newID;
     }
@@ -341,7 +351,7 @@ public class Grid2 : MonoBehaviour
         point.coordinates = coordinates;
         point.pointObject.transform.localPosition = coordinates;
         
-                return;
+        return;
     }
     public void DeletePoint(int id)
     {
@@ -362,6 +372,7 @@ public class Grid2 : MonoBehaviour
         isNameIDExisting[point.nameID] = false;
         points.Remove(id);
         Destroy(point.pointObject);
+        GridDeletePoint.Invoke();
         return;
     }
     private void DeletePoint(GridPoint gridPoint)
@@ -759,4 +770,33 @@ public class Grid2 : MonoBehaviour
     {
         StartCoroutine(showVectorSum(v1, v2));
     }
+
+    public Dictionary<string, int> getPointsNameDict()
+    {
+        Dictionary<string, int> dict = new Dictionary<string, int>();  
+        foreach(GridPoint point in points.Values)
+        {
+            dict[PointName(point)] = point.id;
+        }
+        return dict;
+    }
+    public Dictionary<(string, string), (int, int)> getVectorsNameDict()
+    {
+        Dictionary<(string, string), (int, int)> dict = new Dictionary<(string, string), (int, int)>();
+        foreach (GridVector vector in vectors.Values)
+        {
+            dict[(PointName(vector.initialPoint), PointName(vector.terminalPoint))] = (vector.initialPoint.id, vector.terminalPoint.id);
+        }
+        return dict;
+    }
+    public string SelectedPointName()
+    {
+        if (selectedObject.type == gridObjectType.Point)
+        {
+            return PointName(selectedObject.id);
+        }
+        return "";
+    }
+
+    //Event grid modification
 }
