@@ -51,8 +51,8 @@ public class DropdownPoint : MonoBehaviour
     public void changeSelectedOnGrid()
     {
         string value = dropdownComponent.options[dropdownComponent.value].text;
-        if (value != "_");
-        grid.SelectPoint(nameToID[value]);
+        if (value != "_")
+            grid.SelectPoint(nameToID[value]);
     }
     void changeSelectedOnText()
     {

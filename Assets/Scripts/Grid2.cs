@@ -34,6 +34,8 @@ public class Grid2 : MonoBehaviour
     public bool displayVectorSum = true;
     public Color vectorSumColor = Color.green;
     private string vectorSumText = "";
+    private GridSingleObject vectorSumv1 = new GridSingleObject();
+    private GridSingleObject vectorSumv2 = new GridSingleObject();
 
     [Header("Still in dev")]
     public TMP_Text vectorTestText;
@@ -153,7 +155,7 @@ public class Grid2 : MonoBehaviour
         GridVector vector = getGridVector(id);
         return "<color=#" + ColorUtility.ToHtmlStringRGBA(vector.vector.GetComponent<Vector>().color) + ">";
     }
-    public void changeVectorSum()
+    public void changeDisplayVectorSum()
     {
         displayVectorSum = !displayVectorSum;
     }
@@ -616,6 +618,10 @@ public class Grid2 : MonoBehaviour
     {
         return VectorPositionToString(getGridVector(id));
     }
+    public string VectorPositionAndColorToString(int id)
+    {
+        return VectorColorToString(id) + VectorPositionToString(id);
+    }
     public string ExhibitText()
     {
         string s = "";
@@ -780,12 +786,12 @@ public class Grid2 : MonoBehaviour
         }
         return dict;
     }
-    public Dictionary<(string, string), (int, int)> getVectorsNameDict()
+    public Dictionary<string, int> getVectorsNameDict()
     {
-        Dictionary<(string, string), (int, int)> dict = new Dictionary<(string, string), (int, int)>();
+        Dictionary<string, int> dict = new Dictionary<string, int>();
         foreach (GridVector vector in vectors.Values)
         {
-            dict[(PointName(vector.initialPoint), PointName(vector.terminalPoint))] = (vector.initialPoint.id, vector.terminalPoint.id);
+            dict[VectorColorToString(vector.id) + VectorName(vector)] = vector.id;
         }
         return dict;
     }
@@ -799,4 +805,35 @@ public class Grid2 : MonoBehaviour
     }
 
     //Event grid modification
+
+    public (int, int) GetVectorPoints(int vectorID)
+    {
+        return (vectors[vectorID].initialPoint.id, vectors[vectorID].terminalPoint.id);
+    }
+    public ((int, int), (int, int)) GetVectorSumPointIDS()
+    {
+        return (GetVectorPoints(vectorSumv1.id), GetVectorPoints(vectorSumv2.id));
+    }
+    public bool GetVectorByName(string name, out int id)
+    {
+        id = -1;
+        foreach(GridVector vector in vectors.Values)
+        {
+            if (Equals(VectorName(vector), name) || Equals(VectorColorToString(vector.id) + VectorName(vector), name))
+            {
+                id = vector.id;
+                return true;
+            }
+        }
+        return false;
+    }
+    public void changeVectorSum(int vectorNumber, int vectorID)
+    {
+        if (vectorNumber == 0) vectorSumv1.changeObject(gridObjectType.Vector, vectorID);
+        if (vectorNumber == 1) vectorSumv2.changeObject(gridObjectType.Vector, vectorID);
+    }
+    public (int, int) GetVectorSumIDS()
+    {
+        return (vectorSumv1.id, vectorSumv2.id);
+    }
 }

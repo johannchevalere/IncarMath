@@ -15,7 +15,6 @@ public class PlayerManager : MonoBehaviour
     [SerializeField] bool lowCongruence;
 
     [Header("UI")]
-    [SerializeField] TMP_Text text;
 
     Vector3 pointerPositionOnGrid;
     Vector3 pointerRoundCoords;
@@ -44,14 +43,7 @@ public class PlayerManager : MonoBehaviour
                     pointerPositionOnGrid.z = grid.transform.position.z;
                 }
                 pointerRoundCoords = grid.PosToRoundCoord(pointerPositionOnGrid);
-                text.text = pointerRoundCoords.ToString();
             }
-
-            if (!grid.ExhibitText().Equals(""))
-        {
-            text.text = grid.ExhibitText();
-        }
-
         }
     }
     private void OnSelect()

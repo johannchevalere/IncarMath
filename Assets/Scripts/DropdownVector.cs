@@ -13,9 +13,6 @@ public class DropdownVector : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        //Sign up to grid events
-        grid.GridAddPoint.AddListener(actualizeVectorName);
-        grid.GridDeletePoint.AddListener(actualizeVectorName);
         firstLetter.onValueChanged.AddListener(delegate { actualizeSecondPointOptions(); });
     }
 
@@ -25,9 +22,9 @@ public class DropdownVector : MonoBehaviour
         
     }
 
-    void actualizeVectorName()
+    public void actualizeVectorName(Dictionary<(string, string), (int, int)> VectorNameDict, (int, int) chosenVector)
     {
-        namesToID = grid.getVectorsNameDict();
+        namesToID = VectorNameDict;
         foreach ((string initialPointName, string terminalPointName) in namesToID.Keys)
         {
             if (!dictInitialTerminalPoint.ContainsKey(initialPointName))
