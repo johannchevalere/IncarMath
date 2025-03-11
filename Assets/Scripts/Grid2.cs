@@ -107,10 +107,6 @@ public class Grid2 : MonoBehaviour
     void Start()
     {
         CreateGrid();
-        int id0 = CreatePoint(Vector3.zero, nameID:15);
-        int id1 = CreatePoint(Vector3.up + Vector3.right);
-        CreateVector(id0, id1);
-        StartCoroutine(TestGrid2());
     }
     public IEnumerator showVectorSum(int vector1, int vector2, string vectorSumName = "v")
     {
@@ -121,16 +117,18 @@ public class Grid2 : MonoBehaviour
         }
 
         //Todo change colors of v1 and v2
+        vectorSumv1.changeObject(gridObjectType.Vector,vector1);
+        vectorSumv2.changeObject(gridObjectType.Vector,vector2);
+        
         GridVector v1 = getGridVector(vector1);
-        ChangeVectorColor(v1, Color.red);
         GridVector v2 = getGridVector(vector2);
-        ChangeVectorColor(v2, Color.blue);
 
-
+        
         GameObject vsum = MathManager.instance.InstantiateVector(v1.initialPoint.coordinates, (v1.terminalPoint.coordinates + (v2.terminalPoint.coordinates - v2.initialPoint.coordinates)), transform);
-        vsum.GetComponent<Vector>().ChangeColor(vectorSumColor);
         while (displayVectorSum)
         {
+            v1 = getGridVector(vectorSumv1.id);
+            v2 = getGridVector(vectorSumv2.id);
             ChangeVectorColor(v1, Color.red);
             ChangeVectorColor(v2, Color.blue);
             vsum.GetComponent<Vector>().ChangeColor(vectorSumColor);
@@ -166,12 +164,15 @@ public class Grid2 : MonoBehaviour
         yield return new WaitForEndOfFrame();
         int A = CreatePoint(Vector3.zero,fusePoint:false);
         int B = CreatePoint(Vector3.zero,fusePoint:false);
-        int v = CreateVector(A, B);
-        SelectVector(v);
+        int C = CreatePoint(new Vector3(2, 2, 0));
+        int D = CreatePoint(new Vector3(1,3,0));
+        int v2 = CreateVector(B, C);
+        int v1 = CreateVector(A, B);
+        yield return new WaitForEndOfFrame();
         yield return new WaitForSeconds(1f);
         MovePoint(B, Vector3.right,fusePoint:false);
+        showVectorSum(v2,v1);
         yield return new WaitForSeconds(3f);
-        MovePoint(B, Vector3.zero,fusePoint:false);
 
     }
 
@@ -829,11 +830,37 @@ public class Grid2 : MonoBehaviour
     }
     public void changeVectorSum(int vectorNumber, int vectorID)
     {
-        if (vectorNumber == 0) vectorSumv1.changeObject(gridObjectType.Vector, vectorID);
-        if (vectorNumber == 1) vectorSumv2.changeObject(gridObjectType.Vector, vectorID);
+        if (vectorNumber == 0)
+        {
+            ChangeVectorColor(vectorSumv1.id, basicColor);
+            vectorSumv1.changeObject(gridObjectType.Vector, vectorID);
+        }
+
+        if (vectorNumber == 1)
+        {
+            vectorSumv2.changeObject(gridObjectType.Vector, vectorID);
+        }
     }
     public (int, int) GetVectorSumIDS()
     {
         return (vectorSumv1.id, vectorSumv2.id);
+    }
+
+
+    public float VectorNorm(int id)
+    {
+        GridVector vector = getGridVector(id);
+
+        float x = vector.terminalPoint.coordinates.x -vector.initialPoint.coordinates.x;
+        float y = vector.terminalPoint.coordinates.y - vector.initialPoint.coordinates.y;
+        return Mathf.Sqrt(x * x + y * y);
+    }
+    public Vector3 VectorCoords(int id)
+    {
+        GridVector vector = getGridVector(id);
+        
+        float x = vector.terminalPoint.coordinates.x -vector.initialPoint.coordinates.x;
+        float y = vector.terminalPoint.coordinates.y - vector.initialPoint.coordinates.y;
+        return new Vector3(x, y);
     }
 }

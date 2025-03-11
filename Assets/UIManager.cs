@@ -38,7 +38,7 @@ public class UIManager : MonoBehaviour
         if (!(SoleVectorUI.transform.Find("VectorDropDown")))
         Assert.IsNotNull(VectorSumUI, "No VectorSum UI Object detected");
         Assert.IsNotNull(ScalarVectorUI, "No ScalarVector UI Object detected");
-        config = UIConfig.VectorSum;
+        
     }
 
     // Update is called once per frame
@@ -108,7 +108,7 @@ public class UIManager : MonoBehaviour
     {
         if (!grid.GetVectorByName(vectorName, out int id))
         {
-            Debug.LogError("Could not find vector name");
+            Debug.LogError("Could not find vector name" + vectorName);
             return;
         }
         grid.AddToVector(id, coordsToAdd);
@@ -117,7 +117,7 @@ public class UIManager : MonoBehaviour
     {
         if (!grid.GetVectorByName(vectorName, out int id))
         {
-            Debug.LogError("Could not find vector name");
+            Debug.LogError("Could not find vector name : " + vectorName);
             return;
         }
         grid.changeVectorSum(vectorNumber, id);
@@ -132,10 +132,10 @@ public class UIManager : MonoBehaviour
         foreach (string name in names.Keys)
         {
             options.Add(name);
-            if (names[name] == vectorSum.Item1) id1 = names[name];
-            if (names[name] == vectorSum.Item2) id2 = names[name];
+            if (Equals(names[name], vectorSum.Item1)) id1 = names[name];
+            if (Equals(names[name],vectorSum.Item2)) id2 = names[name];
         }
         VectorSumUI.ActualiseVectorOptions(0, options, id1);
-        VectorSumUI.ActualiseVectorOptions(0, options, id2);
+        VectorSumUI.ActualiseVectorOptions(1, options, id2);
     }
 }

@@ -20,7 +20,7 @@ public class PlayerManager : MonoBehaviour
     Vector3 pointerRoundCoords;
     int currentPointID;
 
-    private void Start()
+    private void OnEnable()
     {
         StartCoroutine(pointerPosition( 0.05f));
     }

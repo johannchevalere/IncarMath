@@ -38,7 +38,20 @@ public class VectorSumUI : MonoBehaviour
     public void ChangeVector(int vectorNumber)
     {
         string vectorName = vectorNumber ==0 ? v1DropDown.options[v1DropDown.value].text : v2DropDown.options[v2DropDown.value].text;
+        int found = vectorName.IndexOf(">");
+        vectorName = vectorName.Substring(found +1);
         uiManager.changeVectorSum(vectorNumber, vectorName);
+    }
+    private void OnEnable()
+    {
+        v1XPlus.onClick.AddListener(delegate { modifyCoords(0, new Vector3(1, 0, 0)); });
+        v1XMinus.onClick.AddListener(delegate { modifyCoords(0, new Vector3(-1, 0, 0)); });
+        v1YPlus.onClick.AddListener(delegate { modifyCoords(0, new Vector3(0, 1, 0)); });
+        v1YMinus.onClick.AddListener(delegate { modifyCoords(0, new Vector3(0, -1, 0)); });
+        v2XPlus.onClick.AddListener(delegate { modifyCoords(1, new Vector3(1, 0, 0)); });
+        v2XMinus.onClick.AddListener(delegate { modifyCoords(1, new Vector3(-1, 0, 0)); });
+        v2YPlus.onClick.AddListener(delegate { modifyCoords(1, new Vector3(0, 1, 0)); });
+        v2YMinus.onClick.AddListener(delegate { modifyCoords(1, new Vector3(0, -1, 0)); });
     }
     public void ChangeSumName(string name)
     {

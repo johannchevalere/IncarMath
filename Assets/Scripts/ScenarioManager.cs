@@ -122,12 +122,6 @@ public class ScenarioManager : MonoBehaviour
         if (instance != null && instance != this) Destroy(this.gameObject);
         instance = this;
 
-        Instruction ins1 = new (Condition.VectorExistence, exerciseGrid,"Créer 5 vecteurs", count: 5);
-        Instruction ins2 = new (Condition.VectorMagnitude, exerciseGrid,"Créer un vecteur de norme 5", value: 5);
-        Instruction ins3 = new(Condition.VectorAtCoordinates, exerciseGrid, "Créer le vecteur ayant pour origine le point (0;0) de coordonnées (0;1)",coords1: Vector3.zero, coords2: Vector3.up);
-        instructions.Add(new List<Instruction> { ins1});
-        instructions.Add(new List<Instruction> { ins2});
-        instructions.Add(new List<Instruction> { ins3});
     }
     private void Update()
     {
