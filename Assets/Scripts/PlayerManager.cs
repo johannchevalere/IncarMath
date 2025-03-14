@@ -26,7 +26,7 @@ public class PlayerManager : MonoBehaviour
     }
     private void Update()
     {
-            }
+    }
     IEnumerator pointerPosition(float refreshrate)
     {
         while (true)
@@ -56,10 +56,10 @@ public class PlayerManager : MonoBehaviour
                 int vectorID = grid.GetVectorId(hit.collider.transform.parent.GetComponent<Vector>());
                 if (grid.isVectorSelected(out int oldVectorID))
                 {
-                    if (vectorID != oldVectorID)
+                    /*if (vectorID != oldVectorID)
                     {
                         grid.VectorSum(oldVectorID, vectorID);
-                    }
+                    }*/
                 }
                 grid.SelectVector(vectorID);
                 return;
@@ -108,10 +108,12 @@ public class PlayerManager : MonoBehaviour
         if (grab != null) {
             while (grab.ReadValue<float>() > 0f)
             {
-                grid.MovePoint(pointID, pointerRoundCoords,false);
+                if (!grid.TryGetPointByCoordinates(pointerRoundCoords, out int existingPointID))
+                {
+                    grid.MovePoint(pointID, pointerRoundCoords, false);
+                }
                 yield return new WaitForSeconds(0.1f);
             }
-            grid.MovePoint(pointID, pointerRoundCoords, true);
         }
     }
     IEnumerator CreateVectorHold()
@@ -119,6 +121,7 @@ public class PlayerManager : MonoBehaviour
         InputAction hold = gridActionAsset.FindActionMap("Grid").FindAction("Hold Select");
         int terminalPointID = grid.CreatePoint(pointerRoundCoords, fusePoint : false);
         int v = grid.CreateVector(currentPointID, terminalPointID);
+        Vector3 firstPointCoords = grid.PointCoords(currentPointID);
         grid.SelectVector(v);
         Vector3 nextPointCoord = pointerRoundCoords;
         if (hold != null)
@@ -136,7 +139,12 @@ public class PlayerManager : MonoBehaviour
                 yield return new WaitForSeconds(0.1f);
             }
             
+            //TODO remove the ability to create 0 0 vectors
             grid.MovePoint(terminalPointID, nextPointCoord, true);
+            if (nextPointCoord.Equals(firstPointCoords))
+            {
+                grid.DeleteVector(v);
+            }
         }
     }
     IEnumerator MoveVector(Vector vector)
@@ -174,7 +182,6 @@ public class PlayerManager : MonoBehaviour
             vector.ChangePointPosition(vector.terminalPoint + 0.3f * grid.transform.forward, true);
             
             grid.MoveVector(vectorID, vector.initialPoint, vector.terminalPoint);
-
         }
     }
 }

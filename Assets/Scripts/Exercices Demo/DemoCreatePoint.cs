@@ -19,14 +19,12 @@ public class DemoCreatePoint : MonoBehaviour
     }
     public IEnumerator exercice1()
     {
+        grid.ClearGrid();
         while (true)
         {
-            Debug.Log("Exercice 1");
             yield return new WaitForSeconds(0.1f);
-            Debug.Log(grid.getVectorsNameDict().Count);
             if (grid.getVectorsNameDict().Count > 0)
             {
-                EndConsigne();
                 StartConsigne(textExercice2);
                 break;
             }
@@ -40,10 +38,9 @@ public class DemoCreatePoint : MonoBehaviour
         int v1 = grid.CreateVector(A, B);
         while (true) {
             yield return new WaitForSeconds(0.1f);
-            Debug.Log(grid.VectorNorm(v1));
             if(grid.VectorNorm(v1) > 1.5f)
             {
-                EndConsigne();
+                yield return new WaitForSeconds(0.5f);
                 StartConsigne(textExercice3);
                 break;
             }
@@ -69,6 +66,7 @@ public class DemoCreatePoint : MonoBehaviour
             {
                 StartConsigne("Félicitation, vous êtes arrivés au bout de la démo. Il y a encore d'autres fonctionnalités que ce tutoriel n'a pas couvert.\n" +
                     "Merci d'avoir pris le temps de participer !");
+                break;
             }
         }
     }
@@ -91,32 +89,34 @@ public class DemoCreatePoint : MonoBehaviour
     public void EndConsigne()
     {
         int i = indexConsigne;
-        if (i == 0)
+
+        switch (i)
         {
-            StartConsigne("Le but est d'apprendre les vecteurs. Les vecteurs sont des objets représentés par des flèches et des nombres.\n" +
-                "Essaie de créer un vecteur en maintenant la gâchette appuyée et en bougeant ton curseur sur la grille.");
-        }
-        if (i == 1)
-        {
-            StartCoroutine(exercice1());
-        }
-        if (i == 2)
-        {
-            StartCoroutine(exercice2());
-        }
-        if (i == 3)
-        {
-            StartCoroutine(exercice3());
-        }
-        else
-        {
-            indexConsigne++;
+            case 0:
+                StartConsigne("Le but est d'apprendre les vecteurs. Les vecteurs sont des objets représentés par des flèches et des nombres.\n" +
+                    "Essaie de créer un vecteur en maintenant la gâchette appuyée et en bougeant ton curseur sur la grille.");
+                break;
+            case 1:
+
+                StartCoroutine(exercice1());
+                break;
+            case 2:
+
+                StartCoroutine(exercice2());
+                break;
+            case 3:
+
+                StartCoroutine(exercice3());
+                indexConsigne++;
+                break;
+            default:
+                indexConsigne++;
+                break;
         }
     }
-
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 }

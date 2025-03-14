@@ -615,7 +615,7 @@ public class Grid2 : MonoBehaviour
         Vector3 vectorCoordinates = vector.terminalPoint.coordinates - vector.initialPoint.coordinates;
         return string.Format("({0};{1})", vectorCoordinates.x, vectorCoordinates.y);
     }
-    private string VectorPositionToString(int id)
+    public string VectorPositionToString(int id)
     {
         return VectorPositionToString(getGridVector(id));
     }
@@ -862,5 +862,9 @@ public class Grid2 : MonoBehaviour
         float x = vector.terminalPoint.coordinates.x -vector.initialPoint.coordinates.x;
         float y = vector.terminalPoint.coordinates.y - vector.initialPoint.coordinates.y;
         return new Vector3(x, y);
+    }
+    public Vector3 PointCoords(int id)
+    {
+        return getGridPoint(id).coordinates;
     }
 }

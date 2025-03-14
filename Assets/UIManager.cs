@@ -16,6 +16,7 @@ public class UIManager : MonoBehaviour
     private DropdownVector soleVectorDropDown;
     [Header("Vector Sum")]
     public VectorSumUI VectorSumUI;
+    public string vectorSumString = "_";
     [Header("Scalar Vector")]
     public GameObject ScalarVectorUI;
     [Header("Pop Up")]
@@ -96,7 +97,21 @@ public class UIManager : MonoBehaviour
        (int, int) vectorSum = grid.GetVectorSumIDS();
         VectorSumUI.UpdateCoords(0, grid.VectorPositionAndColorToString(vectorSum.Item1));
         VectorSumUI.UpdateCoords(1, grid.VectorPositionAndColorToString(vectorSum.Item2));
+        VectorSumUI.UpdateCoords(2, VectorSumString());
     }
+    string VectorSumString()
+    {
+        if (vectorSumString == "_")
+        {
+            (int, int) vectorSum = grid.GetVectorSumIDS();
+            Vector3 sum = grid.VectorCoords(vectorSum.Item1) + grid.VectorCoords(vectorSum.Item2);
+            string r = string.Format("<color=green>({0};{1})", sum.x, sum.y);
+            return r;
+        }
+        else return vectorSumString;
+    }
+
+
     void UpdateScalarVector()
     {
         
@@ -129,11 +144,13 @@ public class UIManager : MonoBehaviour
         int id1 = -1;
         int id2 = -1;
         (int, int) vectorSum = grid.GetVectorSumIDS();
+        int i = 0;
         foreach (string name in names.Keys)
         {
             options.Add(name);
-            if (Equals(names[name], vectorSum.Item1)) id1 = names[name];
-            if (Equals(names[name],vectorSum.Item2)) id2 = names[name];
+            if (names[name] == vectorSum.Item1) id1 = i;
+            if (names[name] == vectorSum.Item2) id2 = i;
+            i++;
         }
         VectorSumUI.ActualiseVectorOptions(0, options, id1);
         VectorSumUI.ActualiseVectorOptions(1, options, id2);
