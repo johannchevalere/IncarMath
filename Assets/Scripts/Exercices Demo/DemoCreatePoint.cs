@@ -8,10 +8,11 @@ public class DemoCreatePoint : MonoBehaviour
     public Grid2 grid;
     public UIManager uiManager;
     public TMP_Text instructionText;
+    public GameObject RightControllerTrigger;
+    public GameObject RightControllerGrip;
     private string textExercice2 = "Tu peux déplacer et modifier les vecteurs et les points à l'aide du \"Grip\" qui se trouve sous ton majeur.\n" +
         "Essaie de déplacer le point B pour faire un vecteur plus grand";
-    private string textExercice3 = "On peut voir les vecteurs comme des déplacements ou des trajets. Ils vont du début de la flèche à la fin de la flèche.\n" +
-        "La somme vectorielle correspondrait au trajet du premier vecteur suivi du trajet du deuxième vecteur.\n" +
+    private string textExercice3 = "Dans cette démonstration, les consignes sont écrites sur ces panneaux, mais elles seront énoncés à l'oral dans la version finale.\n" +
         "Dans le prochain exercice, le vecteur vert est la somme du vecteur rouge et du vecteur bleu. Essaie de modifier les vecteurs rouges et bleus pour que la somme vectorielle soit (3;4)";
     private string currentConsigne = "";
 
@@ -23,6 +24,7 @@ public class DemoCreatePoint : MonoBehaviour
     {
         grid.ClearGrid();
         instructionText.text = "Creation de vecteur";
+        RightControllerTrigger.SetActive(true);
         while (true)
         {
             yield return new WaitForSeconds(0.1f);
@@ -30,6 +32,7 @@ public class DemoCreatePoint : MonoBehaviour
             {
                 yield return new WaitForSeconds(1.0f);
                 StartConsigne(textExercice2);
+                RightControllerTrigger.SetActive(false);
                 break;
             }
         }
@@ -38,6 +41,7 @@ public class DemoCreatePoint : MonoBehaviour
     {
         grid.ClearGrid();
         instructionText.text = "Agrandir un vecteur";
+        RightControllerGrip.SetActive(true);
         int A = grid.CreatePoint(Vector3.zero);
         int B = grid.CreatePoint(Vector3.right);
         int v1 = grid.CreateVector(A, B);
@@ -45,6 +49,7 @@ public class DemoCreatePoint : MonoBehaviour
             yield return new WaitForSeconds(0.1f);
             if(grid.VectorNorm(v1) > 1.5f)
             {
+                RightControllerGrip.SetActive(false);
                 yield return new WaitForSeconds(1.0f);
                 StartConsigne(textExercice3);
                 break;
@@ -55,6 +60,7 @@ public class DemoCreatePoint : MonoBehaviour
     {
         grid.ClearGrid();
         instructionText.text = "Somme Vectorielle";
+        RightControllerGrip.SetActive(true);
         int A = grid.CreatePoint(Vector3.zero);
         int B = grid.CreatePoint(Vector3.right);
         int C = grid.CreatePoint(Vector3.up);
@@ -70,6 +76,7 @@ public class DemoCreatePoint : MonoBehaviour
             (int, int) vsums = grid.GetVectorSumIDS();
             if (Vector3.Equals(grid.VectorCoords(vsums.Item1) + grid.VectorCoords(vsums.Item2), new Vector3(3,4,0)))
             {
+                RightControllerGrip.SetActive(false);
                 yield return new WaitForSeconds(0.5f);
                 StartConsigne("Félicitation, vous êtes arrivés au bout de la démo. Il y a encore d'autres fonctionnalités que ce tutoriel n'a pas couvert.\n" +
                     "Merci d'avoir pris le temps de participer !");
@@ -96,7 +103,6 @@ public class DemoCreatePoint : MonoBehaviour
     public void EndConsigne()
     {
         int i = indexConsigne;
-
         switch (i)
         {
             case 0:
@@ -114,15 +120,33 @@ public class DemoCreatePoint : MonoBehaviour
             case 3:
 
                 StartCoroutine(exercice3());
-                indexConsigne++;
                 break;
             default:
-                indexConsigne++;
+                instructionText.text = "Mode Libre";
+                StartCoroutine(freeMode());
                 break;
         }
     }
+
+    IEnumerator freeMode()
+    {
+        uiManager.config = UIManager.UIConfig.SolePoint;
+        grid.ClearGrid();
+        yield return new WaitForEndOfFrame();
+        int A = grid.CreatePoint(Vector3.zero);
+        int B = grid.CreatePoint(Vector3.right);
+        int C = grid.CreatePoint(Vector3.up);
+        int v1 = grid.CreateVector(A, B);
+        int v2 = grid.CreateVector(B, C);
+        yield return new WaitForEndOfFrame();
+        grid.VectorSum(v1, v2);
+        yield return new WaitForEndOfFrame();
+        uiManager.config = UIManager.UIConfig.VectorSum;
+        indexConsigne++;
+    }
     public void restartExercice()
     {
+        StopAllCoroutines();
         indexConsigne--;
         EndConsigne();
     }

@@ -1,4 +1,4 @@
-using NUnit.Framework;
+using UnityEngine.Assertions;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;
@@ -13,7 +13,7 @@ public class Grid2 : MonoBehaviour
     public int depth =0;
     public float scale = 0.1f;
     [SerializeField] private GameObject gridLine;
-
+    [SerializeField] private Material planeMaterial;
     [Header("Points")]
     private Dictionary<int, GridPoint> points = new Dictionary<int,GridPoint>();
     private List<bool> isNameIDExisting = new List<bool>();
@@ -36,6 +36,7 @@ public class Grid2 : MonoBehaviour
     private string vectorSumText = "";
     private GridSingleObject vectorSumv1 = new GridSingleObject();
     private GridSingleObject vectorSumv2 = new GridSingleObject();
+    public bool b_showVectorSum = false;
 
     [Header("Still in dev")]
     public TMP_Text vectorTestText;
@@ -110,6 +111,7 @@ public class Grid2 : MonoBehaviour
     }
     public IEnumerator showVectorSum(int vector1, int vector2, string vectorSumName = "v")
     {
+        b_showVectorSum = true;
         if (!displayVectorSum)
         {
             Debug.LogError("ERROR::SHOWVECTORSUM::ACCESSED::WHILE::NOT::IN::VECTORSUM::MODE");
@@ -125,7 +127,7 @@ public class Grid2 : MonoBehaviour
 
         
         GameObject vsum = MathManager.instance.InstantiateVector(v1.initialPoint.coordinates, (v1.terminalPoint.coordinates + (v2.terminalPoint.coordinates - v2.initialPoint.coordinates)), transform);
-        while (displayVectorSum)
+        while (displayVectorSum && b_showVectorSum)
         {
             v1 = getGridVector(vectorSumv1.id);
             v2 = getGridVector(vectorSumv2.id);
@@ -146,6 +148,7 @@ public class Grid2 : MonoBehaviour
 
             yield return null;
         }
+        Destroy(vsum);
     }
 
     public string VectorColorToString(int id)
@@ -222,7 +225,7 @@ public class Grid2 : MonoBehaviour
         plane.transform.localScale = new Vector3((1 + 2 * width) / 10f, 1, (1 + 2 * height) / 10f);
         plane.transform.localPosition = Vector3.forward * 0.05f;
         plane.layer = 6;
-        plane.GetComponent<Renderer>().material.color = Color.white;
+        plane.GetComponent<Renderer>().material = planeMaterial;
         for (int line = -width; line <= width; line++)
         {
             GameObject Line = Instantiate(gridLine,transform,false);
@@ -274,13 +277,14 @@ public class Grid2 : MonoBehaviour
         }
         vectors = new Dictionary<int, GridVector>();
         points = new Dictionary<int, GridPoint>();
+
+        b_showVectorSum = false;
     }
     private GridPoint getGridPoint(int id)
     {
         if (!points.ContainsKey(id))
         {
             Debug.LogError(string.Format("ERROR::POINT::DOESNT::EXIST id = {0}", id));
-            Assert.Fail();
         }
         return points[id];
     }

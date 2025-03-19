@@ -53,6 +53,17 @@ public class VectorSumUI : MonoBehaviour
         v2YPlus.onClick.AddListener(delegate { modifyCoords(1, new Vector3(0, 1, 0)); });
         v2YMinus.onClick.AddListener(delegate { modifyCoords(1, new Vector3(0, -1, 0)); });
     }
+    private void OnDisable()
+    {
+        v1XPlus.onClick.RemoveAllListeners();
+        v1XMinus.onClick.RemoveAllListeners();
+        v1YPlus.onClick.RemoveAllListeners();
+        v1YMinus.onClick.RemoveAllListeners();
+        v2XPlus.onClick.RemoveAllListeners();
+        v2XMinus.onClick.RemoveAllListeners();
+        v2YPlus.onClick.RemoveAllListeners();
+        v2YMinus.onClick.RemoveAllListeners();
+    }
     public void ChangeSumName(string name)
     {
         sumName.text = name;

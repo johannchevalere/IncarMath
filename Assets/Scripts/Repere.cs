@@ -3,14 +3,12 @@ using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.InputSystem;
 using System.Collections;
-using NUnit.Framework.Internal;
 using UnityEngine.Rendering;
 using UnityEngine.EventSystems;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using TMPro;
 using System.Linq;
 using UnityEngine.Events;
-using UnityEditor.Experimental.GraphView;
 public class Repere : MonoBehaviour
 {
     struct GridPoint
