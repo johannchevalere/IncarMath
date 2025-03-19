@@ -1,17 +1,19 @@
 using UnityEngine;
 using System.Collections;
+using TMPro;
 
 public class DemoCreatePoint : MonoBehaviour
 {
     int indexConsigne = -1;
     public Grid2 grid;
     public UIManager uiManager;
+    public TMP_Text instructionText;
     private string textExercice2 = "Tu peux déplacer et modifier les vecteurs et les points à l'aide du \"Grip\" qui se trouve sous ton majeur.\n" +
         "Essaie de déplacer le point B pour faire un vecteur plus grand";
     private string textExercice3 = "On peut voir les vecteurs comme des déplacements ou des trajets. Ils vont du début de la flèche à la fin de la flèche.\n" +
         "La somme vectorielle correspondrait au trajet du premier vecteur suivi du trajet du deuxième vecteur.\n" +
         "Dans le prochain exercice, le vecteur vert est la somme du vecteur rouge et du vecteur bleu. Essaie de modifier les vecteurs rouges et bleus pour que la somme vectorielle soit (3;4)";
-
+    private string currentConsigne = "";
 
     public IEnumerator exercice0()
     {
@@ -20,11 +22,13 @@ public class DemoCreatePoint : MonoBehaviour
     public IEnumerator exercice1()
     {
         grid.ClearGrid();
+        instructionText.text = "Creation de vecteur";
         while (true)
         {
             yield return new WaitForSeconds(0.1f);
             if (grid.getVectorsNameDict().Count > 0)
             {
+                yield return new WaitForSeconds(1.0f);
                 StartConsigne(textExercice2);
                 break;
             }
@@ -33,6 +37,7 @@ public class DemoCreatePoint : MonoBehaviour
     public IEnumerator exercice2()
     {
         grid.ClearGrid();
+        instructionText.text = "Agrandir un vecteur";
         int A = grid.CreatePoint(Vector3.zero);
         int B = grid.CreatePoint(Vector3.right);
         int v1 = grid.CreateVector(A, B);
@@ -40,7 +45,7 @@ public class DemoCreatePoint : MonoBehaviour
             yield return new WaitForSeconds(0.1f);
             if(grid.VectorNorm(v1) > 1.5f)
             {
-                yield return new WaitForSeconds(0.5f);
+                yield return new WaitForSeconds(1.0f);
                 StartConsigne(textExercice3);
                 break;
             }
@@ -49,6 +54,7 @@ public class DemoCreatePoint : MonoBehaviour
     public IEnumerator exercice3()
     {
         grid.ClearGrid();
+        instructionText.text = "Somme Vectorielle";
         int A = grid.CreatePoint(Vector3.zero);
         int B = grid.CreatePoint(Vector3.right);
         int C = grid.CreatePoint(Vector3.up);
@@ -64,6 +70,7 @@ public class DemoCreatePoint : MonoBehaviour
             (int, int) vsums = grid.GetVectorSumIDS();
             if (Vector3.Equals(grid.VectorCoords(vsums.Item1) + grid.VectorCoords(vsums.Item2), new Vector3(3,4,0)))
             {
+                yield return new WaitForSeconds(0.5f);
                 StartConsigne("Félicitation, vous êtes arrivés au bout de la démo. Il y a encore d'autres fonctionnalités que ce tutoriel n'a pas couvert.\n" +
                     "Merci d'avoir pris le temps de participer !");
                 break;
@@ -113,6 +120,11 @@ public class DemoCreatePoint : MonoBehaviour
                 indexConsigne++;
                 break;
         }
+    }
+    public void restartExercice()
+    {
+        indexConsigne--;
+        EndConsigne();
     }
     // Update is called once per frame
     void Update()

@@ -170,6 +170,8 @@ public class PlayerManager : MonoBehaviour
                 Vector3 newTerminalPointPos = grid.PosToRoundCoord(terminalPointOldPos + deltaPos) - 0.3f * Vector3.forward;
                 vector.ChangePointPosition(newInitialPointPos, false);
                 vector.ChangePointPosition(newTerminalPointPos, true);
+                 
+                
                 
                 
                 yield return new WaitForSeconds(0.1f);
