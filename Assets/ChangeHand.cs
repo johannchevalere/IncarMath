@@ -25,7 +25,7 @@ public class ChangeHand : MonoBehaviour
             return;
 
 
-            int a = 26;
+            int a = 27;
         }
     }
         
