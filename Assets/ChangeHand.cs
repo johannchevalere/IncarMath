@@ -23,6 +23,9 @@ public class ChangeHand : MonoBehaviour
             RayInteractor.transform.parent = RightHand.transform;
             HandState = 0;
             return;
+
+
+            int a = 23;
         }
     }
         
