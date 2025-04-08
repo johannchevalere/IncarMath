@@ -111,7 +111,7 @@ public class DemoCreatePoint : MonoBehaviour
                 break;
             case 1:
 
-                StartCoroutine(exercice1());
+                StartCoroutine(exercice3());
                 break;
             case 2:
 
