@@ -8025,17 +8025,45 @@ MonoBehaviour:
   steps:
   - ExerciceSucessCondition: 0
     ExerciceSucessParam: {x: 0, y: 0}
-    exerciceTitle: 
-    exerciceDescription: ' '
-    audioConsigne: {fileID: 0}
-    audioSucess: {fileID: 0}
-    audioFailure: {fileID: 0}
+    exerciceTitle: Bienvenue
+    exerciceDescription: 
+    audioConsigne: {fileID: 8300000, guid: e0768a4171ae66e40ae5243809ac9c4d, type: 3}
+    audioSucess: {fileID: 8300000, guid: 0af0b1853b215c54a92967f132038c7d, type: 3}
+    audioFailure: {fileID: 8300000, guid: 0af0b1853b215c54a92967f132038c7d, type: 3}
     changeGridConfig: 0
     gridConfig:
       points: []
       pointNames: 
       DisplayVectorSum: 0
+      vectorSum1: 
+      vectorSum2: 
     events: []
+    exerciceUIConfig: 0
+  - ExerciceSucessCondition: 0
+    ExerciceSucessParam: {x: 0, y: 0}
+    exerciceTitle: Bienvenue
+    exerciceDescription: 
+    audioConsigne: {fileID: 8300000, guid: 95506658860ae79428a8642058062b75, type: 3}
+    audioSucess: {fileID: 8300000, guid: 0af0b1853b215c54a92967f132038c7d, type: 3}
+    audioFailure: {fileID: 8300000, guid: 2c3dc01eddd76fd43b0004c0e8e6a95b, type: 3}
+    changeGridConfig: 0
+    gridConfig:
+      points: []
+      pointNames: 
+      DisplayVectorSum: 0
+      vectorSum1: 
+      vectorSum2: 
+    events:
+    - timestamp: 0
+      actionType: 0
+      actionParam: 1.5
+      duration: 5
+      gridConfig:
+        points: []
+        pointNames: 
+        DisplayVectorSum: 0
+        vectorSum1: 
+        vectorSum2: 
     exerciceUIConfig: 0
   ExerciceStepIndex: 0
   audioSource: {fileID: 0}

@@ -35,7 +35,8 @@ public class GridConfig
     public List<char> pointNames;
     public List<(string, string)> vectors;
     public bool DisplayVectorSum;
-    public (string, string) vectorSum;
+    public string vectorSum1;
+    public string vectorSum2;
 }
 
 [System.Serializable]
@@ -149,8 +150,8 @@ public class Exercice : MonoBehaviour
 
         if (config.DisplayVectorSum)
         {
-            int point1ID = grid.GetPointIDByName(config.vectorSum.Item1);
-            int point2ID = grid.GetPointIDByName(config.vectorSum.Item2);
+            int point1ID = grid.GetPointIDByName(config.vectorSum1);
+            int point2ID = grid.GetPointIDByName(config.vectorSum2);
         }
     }
 
