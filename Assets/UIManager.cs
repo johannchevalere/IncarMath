@@ -104,7 +104,7 @@ public class UIManager : MonoBehaviour
         {
             (int, int) vectorSum = grid.GetVectorSumIDS();
             Vector3 sum = grid.VectorCoords(vectorSum.Item1) + grid.VectorCoords(vectorSum.Item2);
-            string r = string.Format("<color=green>({0};{1})", sum.x, sum.y);
+            string r = string.Format("<color=#C9A781>({0};{1})", sum.x, sum.y);
             return r;
         }
         else return vectorSumString;

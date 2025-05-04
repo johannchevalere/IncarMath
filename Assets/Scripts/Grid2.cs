@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections;
 using TMPro;
 using UnityEngine.Events;
+using UnityEditor.Experimental.GraphView;
 
 public class Grid2 : MonoBehaviour
 {
@@ -32,10 +33,13 @@ public class Grid2 : MonoBehaviour
 
     [Header("Vectorial Sum")]
     public bool displayVectorSum = true;
+    public Color vector1_Color;
+    public Color vector2_Color;
     public Color vectorSumColor = Color.green;
     private string vectorSumText = "";
     private GridSingleObject vectorSumv1 = new GridSingleObject();
     private GridSingleObject vectorSumv2 = new GridSingleObject();
+    private Vector3 vectorSumCoords = new Vector3();
     public bool b_showVectorSum = false;
 
     [Header("Still in dev")]
@@ -131,12 +135,13 @@ public class Grid2 : MonoBehaviour
         {
             v1 = getGridVector(vectorSumv1.id);
             v2 = getGridVector(vectorSumv2.id);
-            ChangeVectorColor(v1, Color.red);
-            ChangeVectorColor(v2, Color.blue);
+            ChangeVectorColor(v1, vector1_Color);
+            ChangeVectorColor(v2, vector2_Color);
             vsum.GetComponent<Vector>().ChangeColor(vectorSumColor);
             vsum.GetComponent<Vector>().ChangePointPosition(v1.initialPoint.coordinates, false);
             vsum.GetComponent<Vector>().ChangePointPosition(v1.terminalPoint.coordinates + (v2.terminalPoint.coordinates - v2.initialPoint.coordinates), true);
             Vector3 vCoords = v1.terminalPoint.coordinates + v2.terminalPoint.coordinates - v1.initialPoint.coordinates - v2.initialPoint.coordinates;
+            vectorSumCoords = vCoords;
             string vSumColorString = "<color=#" + ColorUtility.ToHtmlStringRGBA(vsum.GetComponent<Vector>().color) + ">";
             //Change exhibited text
             vectorSumText = VectorColorToString(vector1) + VectorName(vector1) + "<color=#000000> + ";
@@ -151,6 +156,29 @@ public class Grid2 : MonoBehaviour
         Destroy(vsum);
     }
 
+
+    public Vector3 VectorSumCoords()
+    {
+        return vectorSumCoords;
+    }
+
+
+    public bool TryGetVectorByCoordinates(Vector3 coordinates, out int vectorID)
+    {
+        
+        foreach (GridVector vector in vectors.Values)
+        {
+            Vector3 vCoords= vector.terminalPoint.coordinates - vector.initialPoint.coordinates;
+               
+            if (Vector3.Equals(vCoords, coordinates))
+            {
+                vectorID = vector.id;
+                return true;
+            }
+        }
+        vectorID = -1;
+        return false;
+    }
     public string VectorColorToString(int id)
     {
         GridVector vector = getGridVector(id);
@@ -589,7 +617,17 @@ public class Grid2 : MonoBehaviour
         c += 'A';
         return c.ToString();
     }
-
+    public int GetPointIDByName(string name)
+    {
+        foreach (GridPoint point in points.Values)
+        {
+            if (PointName(point).Equals(name))
+            {
+                return point.id;
+            }
+        }
+        return -1;
+    }
     private string PointName(GridPoint point)
     {
         return NameIDToString(point.nameID);
@@ -870,5 +908,14 @@ public class Grid2 : MonoBehaviour
     public Vector3 PointCoords(int id)
     {
         return getGridPoint(id).coordinates;
+    }
+
+    public void VectorZoom(int vectorID, float scaleFactor, float zoomDuration, float transitionDuration = 0.2f)
+    {
+        Vector v = vectors[vectorID].vector;
+        ScaleUp su = v.gameObject.AddComponent<ScaleUp>();
+        su.scaleFactor = scaleFactor;
+        su.fullZoomDurationInSeconds = zoomDuration;
+        su.transitionDurationInSeconds = transitionDuration;
     }
 }
