@@ -44,6 +44,8 @@ public class Grid2 : MonoBehaviour
 
     [Header("Still in dev")]
     public TMP_Text vectorTestText;
+    public char nextPoint = 'O';
+    bool firstPoint = true;
 
     [Header("Events")]
     public UnityEvent GridAddPoint;
@@ -348,8 +350,14 @@ public class Grid2 : MonoBehaviour
         
         int newID = pointNextID;
         pointNextID++;
+        if (firstPoint)
+        {
+            nameID = nextPoint - 'A';
+            firstPoint = false;
+        }
         
         int pointNameID = GenerateNewNameID(nameID);
+        
         point.GetComponent<Point>().setName(NameIDToString(pointNameID));
         points[newID] = new GridPoint(coordinates, pointNameID, newID, point);
 
@@ -632,7 +640,7 @@ public class Grid2 : MonoBehaviour
     {
         return NameIDToString(point.nameID);
     }
-    private string PointName(int pointID)
+    public string PointName(int pointID)
     {
         return PointName(getGridPoint(pointID));
     }
@@ -640,9 +648,17 @@ public class Grid2 : MonoBehaviour
     {
         return PointName(vector.initialPoint) + PointName(vector.terminalPoint);
     }
-    private string VectorName(int vectorID)
+    public string VectorName(int vectorID)
     {
         return VectorName(getGridVector(vectorID));
+    }
+    public bool ContainsPointID(int id)
+    {
+        return points.ContainsKey(id);
+    }
+    public bool ContainsVectorID(int id)
+    {
+        return vectors.ContainsKey(id);
     }
     private string PointPositionToString(GridPoint point)
     {
@@ -767,6 +783,7 @@ public class Grid2 : MonoBehaviour
             s += PointName(point) + " : " + PointPositionToString(point);
             s += "\n";
         }
+        /*
         s += "Vectors\n\n";
         foreach (int id in vectors.Keys)
         {
@@ -775,7 +792,8 @@ public class Grid2 : MonoBehaviour
             s += VectorName(vector) + " : " + VectorPositionToString(vector);
             s += "\n";
         }
-        //Todo: display vectors too
+        */
+        //Todo: display vectors arrows in the list before enabling them
         return s;
     }
     public string VectorIDS(int id)

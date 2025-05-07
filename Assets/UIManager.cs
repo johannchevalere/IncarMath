@@ -10,9 +10,11 @@ public class UIManager : MonoBehaviour
     [Header("Sole Point")]
     public GameObject SolePointUI;
     private DropdownPoint solePointDropdown;
+    public int solePointID = 0;
     [Header("Sole Vector")]
     public GameObject SoleVectorUI;
     private DropdownVector soleVectorDropDown;
+    public int soleVectorID = 0;
     [Header("Vector Sum")]
     public VectorSumUI VectorSumUI;
     public string vectorSumString = "_";
@@ -22,10 +24,10 @@ public class UIManager : MonoBehaviour
     public GameObject PopUpUI;
     public enum UIConfig
     {
-        SolePoint, SoleVector, VectorSum, ScalarVector
+        SolePoint, SoleVector, VectorSum, ScalarVector, None
     }
     public UIConfig config;
-    public UIConfig lastState;
+    public UIConfig lastState = UIConfig.None;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -49,20 +51,25 @@ public class UIManager : MonoBehaviour
 
     void UpdateConfig()
     {
-        if (!lastState.Equals(config))
+        if (lastState != config)
             DisableUI();
 
         switch (config)
         {
             case UIConfig.SolePoint:
-                if(!lastState.Equals(config))
+                Debug.Log("This should appear");
+                if (lastState != config)
+                {
+                    Debug.Log("This should appear once");
                     SolePointUI.SetActive(true);
-                UpdateSolePoint();
+                }
+                    UpdateSolePoint();
                 break;
             case UIConfig.SoleVector:
                 
                 if(!lastState.Equals(config))
                     SoleVectorUI.SetActive(true);
+                UpdateSoleVector();
                 break;
             case UIConfig.ScalarVector:
                 if(!lastState.Equals(config))
@@ -76,6 +83,8 @@ public class UIManager : MonoBehaviour
                 }
                 UpdateVectorSum();
                 break;
+            case UIConfig.None:
+                break;
             default:
                 Debug.LogError("No UI configuration selected");
                 break;
@@ -84,13 +93,38 @@ public class UIManager : MonoBehaviour
     }
     void DisableUI()
         {
+            Debug.Log("This should appear once too");
             SolePointUI.SetActive(false);
             SoleVectorUI.SetActive(false);
             VectorSumUI.gameObject.SetActive(false);
             ScalarVectorUI.SetActive(false);
         }
-    void UpdateSolePoint() { }
-    void UpdateSoleVector() { }
+    void UpdateSolePoint() {
+        SolePointUI pointUIObject = SolePointUI.GetComponent<SolePointUI>();
+        if (grid.ContainsPointID(solePointID))
+        {
+            Debug.Log("I'm in");
+            string pointName = grid.PointName(solePointID);
+            string pointCoords = "(" + grid.PointCoords(solePointID).x.ToString() + "; " + grid.PointCoords(solePointID).y.ToString() + ")";
+            pointUIObject.pointName = pointName;
+            pointUIObject.pointCoord = pointCoords;
+        }
+    }
+    void UpdateSoleVector() {
+        SoleVectorUI vectorUIObject = SoleVectorUI.GetComponent<SoleVectorUI>();
+        if (grid.ContainsVectorID(soleVectorID))
+        {
+            string vectorName = grid.VectorColorToString(soleVectorID) + grid.VectorName(soleVectorID);
+            string vectorCoords = grid.VectorPositionAndColorToString(soleVectorID);
+            vectorUIObject.vectorName = vectorName;
+            vectorUIObject.vectorCoord = vectorCoords;
+        }
+    }
+    public void setID(int id)
+    {
+        solePointID = id;
+        soleVectorID = id;
+    }
     void UpdateVectorSum()
     {
        (int, int) vectorSum = grid.GetVectorSumIDS();
