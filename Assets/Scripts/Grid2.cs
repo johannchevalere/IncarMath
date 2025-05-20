@@ -133,6 +133,7 @@ public class Grid2 : MonoBehaviour
 
         
         GameObject vsum = MathManager.instance.InstantiateVector(v1.initialPoint.coordinates, (v1.terminalPoint.coordinates + (v2.terminalPoint.coordinates - v2.initialPoint.coordinates)), transform);
+        vsum.name = "VectorSum";
         while (displayVectorSum && b_showVectorSum)
         {
             v1 = getGridVector(vectorSumv1.id);
@@ -304,6 +305,10 @@ public class Grid2 : MonoBehaviour
         foreach (var pointID in pointToDelete)
         {
             DeletePoint(pointID);
+        }
+        if (transform.Find("VectorSum") != null)
+        {
+            Destroy(transform.Find("VectorSum").gameObject);
         }
         vectors = new Dictionary<int, GridVector>();
         points = new Dictionary<int, GridPoint>();

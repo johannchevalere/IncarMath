@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 
 
@@ -28,7 +29,7 @@ public enum ActionType {
 }
 public enum Condition
 {
-    NoCondition, PointAtCoord, VectorAtCoord, VectorialSumCoord
+    NoCondition, PointAtCoord, VectorAtCoord, VectorialSumCoord, ChooseVector
 }
 
 [System.Serializable]
@@ -59,6 +60,7 @@ public class ExerciceStep
 {
     public Condition ExerciceSucessCondition;
     public Vector2 ExerciceSucessParam;
+    public string SucessParamString = "";
     public string exerciceTitle;
     public string exerciceDescription;
     public AudioClip audioConsigne;
@@ -74,6 +76,7 @@ public class ExerciceStep
 public class Exercice : MonoBehaviour
 {
     public Grid2 grid;
+    public TMP_Dropdown dropdown;
     public UIManager uiManager;
 
     public string scenarioTitle;
@@ -91,7 +94,7 @@ public class Exercice : MonoBehaviour
         yield return new WaitForSeconds(2);
         StartCoroutine(playExerciceStep());
     }
-    bool CheckCondition(Vector3 coordinates, Condition condition)
+    bool CheckCondition(Vector3 coordinates, Condition condition, string param)
     {
         switch (condition)
         {
@@ -101,6 +104,8 @@ public class Exercice : MonoBehaviour
                 return grid.TryGetVectorByCoordinates(coordinates, out int vectorID);
             case Condition.VectorialSumCoord:
                 return (grid.VectorSumCoords() == coordinates);
+            case Condition.ChooseVector:
+                return (dropdown.options[dropdown.value].text.Equals(param));
             default: return false;
         }
     }
@@ -133,6 +138,7 @@ public class Exercice : MonoBehaviour
         }
         if (step.audioSucess != null)
         {
+            audioSource.Stop();
             audioSource.PlayOneShot(step.audioSucess);
             yield return new WaitForSeconds(step.audioSucess.length);
         }
@@ -153,7 +159,7 @@ public class Exercice : MonoBehaviour
             case ActionType.GrowVector:
                 Debug.Log("Grow Vector");
                 bool vectorRetrieved = grid.GetVectorByName(timedEvent.actionParam, out int vectorID);
-                grid.VectorZoom(vectorID, 1.1f, timedEvent.duration, 0.1f);
+                grid.VectorZoom(vectorID, 1.5f, timedEvent.duration, 0.1f);
                 break;
 
             case ActionType.ChangeGridConfig:
@@ -216,6 +222,7 @@ public class Exercice : MonoBehaviour
     {
         Condition condition = steps[ExerciceStepIndex].ExerciceSucessCondition;
         Vector2 param = steps[ExerciceStepIndex].ExerciceSucessParam;
+        string stringParam = steps[ExerciceStepIndex].SucessParamString;
 
         switch (condition) {
             case Condition.NoCondition:
@@ -230,6 +237,9 @@ public class Exercice : MonoBehaviour
             case Condition.VectorialSumCoord:
                 conditionMet = (grid.VectorSumCoords().Equals((Vector3)param));
                 break;
+                case Condition.ChooseVector:
+                conditionMet = CheckCondition(Vector3.zero, condition, stringParam);
+                break;
         }
         if (conditionMet)
         {
@@ -237,13 +247,16 @@ public class Exercice : MonoBehaviour
         }
         else
         {
+            audioSource.Stop();
             audioSource.PlayOneShot(steps[ExerciceStepIndex].audioFailure);
         }
     }
     void EndExercice()
     {
         ExerciceStepIndex++;
+        if (ExerciceStepIndex >= 5 && dropdown != null) dropdown.gameObject.SetActive(true);
         conditionMet = false;
+        audioSource.Stop();
         if(ExerciceStepIndex < steps.Count) { StartCoroutine(playExerciceStep()); }
     }
 
