@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: "If you use this software in your research or teaching, please cite it using the metadata below."
+title: "IncarMath: An Immersive Virtual Reality Prototype for Embodied Learning of Mathematical Vectors"
+type: software
+
+authors:
+  - family-names: "Chaminade"
+    given-names: "Arthur"
+
+  - family-names: "Bouhon"
+    given-names: "Margot"
+
+  - family-names: "Layadi"
+    given-names: "Samy"
+
+  - family-names: "Douce-Boularand"
+    given-names: "Valérie"
+
+  - family-names: "LeBoulair"
+    given-names: "Yohann"
+
+  - family-names: "Mesnard"
+    given-names: "Emmanuel"
+
+  - family-names: "Chevalère"
+    given-names: "Johann"
+
+doi: "10.5281/zenodo.23018003"
+repository-code: "https://github.com/johannchevalere/IncarMath"
+url: "https://doi.org/10.5281/zenodo.23018003"
+license: "Apache-2.0"
+version: "v1"
+date-released: "2026-09-28"
